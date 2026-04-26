@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🖤 FBP Command Center — Funky Black Poppy</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0a0a0a;--charcoal:#161616;--graphite:#242424;--dim:#363636;
+  --mid:#6b6b6b;--lt:#c0c0c0;--off-white:#f0ece6;
+  --pink:#f2c4d0;--pink-deep:#c96b82;--pink-pale:#faeaee;--pink-glow:rgba(242,196,208,0.12);
+  --hot-pink:#E8006E;--purple:#7c3f8a;--purple-lt:#e0cceb;
+  --red:#c0302a;--red-lt:#f0d8d5;
+  --green:#1e6060;--green-bright:#2d9a55;
+  --gold:#b8965a;
+  --border:#262626;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Jost',sans-serif;background:var(--black);color:var(--off-white);min-height:100vh;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");opacity:.7}
+
+/* HEADER */
+header{background:var(--black);border-bottom:1px solid var(--graphite);padding:0 1.5rem;height:56px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--red) 20%,var(--pink) 50%,var(--purple) 80%,transparent)}
+.logo{display:flex;align-items:center;gap:.7rem}
+.logo-badge{width:32px;height:32px;border:2px solid var(--pink-deep);border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:15px}
+.logo-text{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;letter-spacing:.12em}
+.logo-text span{color:var(--pink)}
+.hdr-kpis{display:flex;gap:1.2rem}
+.hk{text-align:center}
+.hk-n{font-family:'DM Mono',monospace;font-size:.85rem;font-weight:700}
+.hk-l{font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mid)}
+
+/* NAV */
+nav{background:var(--charcoal);border-bottom:1px solid var(--graphite);display:flex;padding:0 1.5rem;gap:2px;
+  position:sticky;top:56px;z-index:99}
+.nav-tab{padding:.65rem 1.2rem;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--mid);cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap}
+.nav-tab:hover{color:var(--off-white)}
+.nav-tab.active{color:var(--pink);border-bottom-color:var(--pink-deep)}
+
+/* PANELS */
+.panel{display:none;padding:1.5rem;max-width:1200px;margin:0 auto}
+.panel.active{display:block}
+
+/* SECTION HEADERS */
+.sh{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.7rem}
+.sh::before{content:'';width:3px;height:1.1em;background:linear-gradient(180deg,var(--red),var(--pink));border-radius:2px}
+.sh-sub{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--pink-deep);margin-bottom:.8rem;
+  display:flex;align-items:center;gap:.5rem}
+.sh-sub::after{content:'';flex:1;height:1px;background:rgba(201,107,130,.2)}
+
+/* CARDS */
+.card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:8px;padding:1.1rem;margin-bottom:1rem}
+.card-t{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--pink);margin-bottom:.7rem}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.7rem;margin-bottom:1.2rem}
+.kpi{background:var(--charcoal);border:1px solid var(--graphite);border-radius:8px;padding:1rem;
+  text-align:center;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.pink::before{background:var(--hot-pink)}
+.kpi.red::before{background:var(--red)}
+.kpi.green::before{background:var(--green-bright)}
+.kpi.purple::before{background:var(--purple)}
+.kpi.gold::before{background:var(--gold)}
+.kpi-n{font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:700;line-height:1}
+.kpi-l{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mid);margin-top:.35rem}
+.kpi-s{font-size:.6rem;margin-top:.2rem}
+.kpi-s.good{color:var(--green-bright)}
+.kpi-s.warn{color:var(--gold)}
+.kpi-s.bad{color:var(--red)}
+
+/* STALE BARS */
+.sb-row{display:flex;align-items:center;gap:.7rem;margin-bottom:.5rem}
+.sb-label{font-size:.7rem;color:var(--lt);width:80px;flex-shrink:0}
+.sb-track{flex:1;background:var(--graphite);border-radius:3px;height:8px;overflow:hidden}
+.sb-fill{height:100%;border-radius:3px;transition:width .6s}
+.sb-ct{font-family:'DM Mono',monospace;font-size:.7rem;font-weight:700;width:30px;text-align:right}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed rgba(201,107,130,.35);border-radius:10px;padding:2rem;text-align:center;
+  cursor:pointer;transition:all .2s;background:var(--charcoal);margin-bottom:1rem}
+.upload-zone:hover{border-color:var(--pink-deep);background:rgba(201,107,130,.04)}
+.uz-icon{font-size:2rem;margin-bottom:.5rem}
+.uz-text{font-size:.85rem;font-weight:600;color:var(--pink)}
+.uz-sub{font-size:.7rem;color:var(--mid);margin-top:.3rem}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:.75rem}
+.tbl th{background:var(--graphite);padding:.55rem .6rem;text-align:left;font-family:'DM Mono',monospace;
+  font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--pink);
+  border-bottom:1px solid var(--dim);position:sticky;top:0;z-index:1}
+.tbl td{padding:.5rem .6rem;border-bottom:1px solid var(--graphite);vertical-align:top}
+.tbl tr:hover{background:rgba(242,196,208,.03)}
+.tbl .new-title{color:var(--green-bright);font-weight:600}
+
+/* BADGES */
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:3px;font-family:'DM Mono',monospace;
+  font-size:.6rem;font-weight:600;letter-spacing:.04em}
+.badge.stale{background:rgba(192,48,42,.2);color:var(--red)}
+.badge.active{background:rgba(30,96,96,.2);color:var(--green)}
+.badge.draft{background:rgba(184,150,90,.2);color:var(--gold)}
+.badge.sold{background:rgba(124,63,138,.2);color:var(--purple)}
+
+/* ACTION CARDS */
+.act{display:flex;align-items:flex-start;gap:.7rem;padding:.7rem;background:var(--graphite);
+  border-radius:6px;margin-bottom:.5rem;border-left:3px solid}
+.act.urgent{border-color:var(--red)}
+.act.warn{border-color:var(--gold)}
+.act.good{border-color:var(--green-bright)}
+.act-icon{font-size:1rem;flex-shrink:0}
+.act-t{font-size:.8rem;font-weight:600}
+.act-s{font-size:.65rem;color:var(--mid);margin-top:.15rem}
+
+/* BUTTONS */
+.btn{padding:.5rem 1.2rem;border:none;border-radius:5px;font-family:'Jost',sans-serif;font-size:.75rem;
+  font-weight:600;letter-spacing:.04em;cursor:pointer;transition:all .15s}
+.btn-pink{background:linear-gradient(135deg,var(--pink-deep),var(--purple));color:#fff}
+.btn-pink:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(201,107,130,.3)}
+.btn-ghost{background:transparent;border:1px solid var(--dim);color:var(--lt)}
+.btn-ghost:hover{border-color:var(--pink-deep);color:var(--pink)}
+
+/* TITLE REFRESH TABLE */
+.refresh-row{display:grid;grid-template-columns:40px 1fr 1fr 80px 60px 100px;gap:.5rem;align-items:center;
+  padding:.5rem .6rem;border-bottom:1px solid var(--graphite);font-size:.72rem}
+.refresh-row:hover{background:rgba(242,196,208,.03)}
+.rf-hdr{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--pink);background:var(--graphite);border-radius:4px 4px 0 0;position:sticky;top:0;z-index:2}
+.rf-old{color:var(--mid);text-decoration:line-through}
+.rf-new{color:var(--green-bright);font-weight:600}
+.rf-aes{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--pink);background:rgba(201,107,130,.1);
+  padding:.15rem .4rem;border-radius:3px;display:inline-block}
+.rf-days{font-family:'DM Mono',monospace;font-weight:700;text-align:center;padding:.15rem .4rem;border-radius:3px}
+.rf-days.critical{background:rgba(192,48,42,.25);color:var(--red)}
+.rf-days.old{background:rgba(184,150,90,.2);color:var(--gold)}
+.rf-check{width:16px;height:16px;cursor:pointer;accent-color:var(--green-bright)}
+
+/* FOOTER */
+footer{background:var(--black);border-top:1px solid var(--graphite);padding:.5rem 1.5rem;
+  display:flex;justify-content:space-between;align-items:center;font-size:.6rem;color:var(--dim)}
+footer .memorial{color:var(--mid);font-style:italic}
+
+/* TABS WITHIN PANELS */
+.sub-tabs{display:flex;gap:1px;background:var(--graphite);border-radius:6px;overflow:hidden;margin-bottom:1rem}
+.sub-tab{padding:.5rem 1rem;font-size:.65rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--mid);cursor:pointer;background:var(--charcoal);flex:1;text-align:center;transition:all .15s}
+.sub-tab:hover{color:var(--off-white)}
+.sub-tab.active{background:var(--graphite);color:var(--pink)}
+.sub-panel{display:none}
+.sub-panel.active{display:block}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem}
+
+/* PLATFORM BARS */
+.plat-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem}
+.plat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.plat-name{font-size:.72rem;font-weight:600;width:70px;flex-shrink:0}
+.plat-track{flex:1;background:var(--graphite);border-radius:3px;height:6px}
+.plat-fill{height:100%;border-radius:3px}
+.plat-ct{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--mid);width:50px}
+
+/* COPY BUTTON */
+.copy-btn{background:var(--graphite);border:1px solid var(--dim);color:var(--mid);border-radius:4px;
+  padding:.2rem .6rem;font-size:.6rem;cursor:pointer;transition:all .15s}
+.copy-btn:hover{border-color:var(--pink-deep);color:var(--pink)}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .refresh-row{grid-template-columns:30px 1fr 1fr 60px 40px 60px;font-size:.65rem}
+  .hdr-kpis{display:none}
+  nav{overflow-x:auto}
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--pink-deep)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">🖤</div>
+    <div class="logo-text">FUNKY <span>BLACK</span> POPPY</div>
+  </div>
+  <div class="hdr-kpis">
+    <div class="hk"><div class="hk-n" id="hk-active" style="color:var(--green-bright)">—</div><div class="hk-l">Active</div></div>
+    <div class="hk"><div class="hk-n" id="hk-stale" style="color:var(--red)">—</div><div class="hk-l">Stale</div></div>
+    <div class="hk"><div class="hk-n" id="hk-drafts" style="color:var(--gold)">—</div><div class="hk-l">Drafts</div></div>
+    <div class="hk"><div class="hk-n" id="hk-sold" style="color:var(--purple)">—</div><div class="hk-l">Sold</div></div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-tab active" onclick="showPanel('dash',this)">📊 Dashboard</div>
+  <div class="nav-tab" onclick="showPanel('refresh',this)">🔄 Title Refresh</div>
+  <div class="nav-tab" onclick="showPanel('listing',this)">✏️ New Listing</div>
+  <div class="nav-tab" onclick="showPanel('photo',this)">📷 Photo Studio</div>
+  <div class="nav-tab" onclick="showPanel('queue',this)">⚡ Today's Queue</div>
+</nav>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div class="panel active" id="p-dash">
+  <div class="upload-zone" onclick="document.getElementById('csvInput').click()">
+    <div class="uz-icon">📂</div>
+    <div class="uz-text">Drop your Vendoo CSV export here</div>
+    <div class="uz-sub">Weekly export from Vendoo → instant dashboard + stale detection + SS26 title refresh</div>
+  </div>
+  <input type="file" id="csvInput" accept=".csv" hidden>
+  <div id="dashContent" style="display:none">
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-t">🔴 Stale Breakdown by Age</div>
+        <div id="staleBreakdown"></div>
+      </div>
+      <div class="card">
+        <div class="card-t">📡 Platform Coverage</div>
+        <div id="platCoverage"></div>
+      </div>
+    </div>
+    <div class="three-col">
+      <div class="card">
+        <div class="card-t">📦 Top Categories (Active)</div>
+        <div id="catBreakdown"></div>
+      </div>
+      <div class="card">
+        <div class="card-t">💰 Revenue Summary</div>
+        <div id="revSummary"></div>
+      </div>
+      <div class="card">
+        <div class="card-t">⚡ Immediate Actions</div>
+        <div id="actions"></div>
+      </div>
+    </div>
+  </div>
+  <div id="noCsv" style="text-align:center;padding:3rem;color:var(--mid);font-style:italic">
+    Upload your Vendoo CSV export to see your full dashboard, stale listings, and get SS26 title updates.
+  </div>
+</div>
+
+<!-- ═══ TITLE REFRESH ═══ -->
+<div class="panel" id="p-refresh">
+  <div class="sh">SS26 Title Refresh Queue</div>
+  <div id="refreshNoCsv" style="text-align:center;padding:2rem;color:var(--mid);font-style:italic">
+    Upload a Vendoo CSV on the Dashboard tab first to populate the refresh queue.
+  </div>
+  <div id="refreshContent" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
+      <div style="font-size:.75rem;color:var(--lt)">
+        Showing <span id="refreshCount" style="color:var(--pink);font-weight:700">0</span> active listings needing SS26 title updates.
+        New titles auto-generated using the FBP title engine.
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-ghost" onclick="copyAllTitles()">📋 Copy All New Titles</button>
+        <button class="btn btn-ghost" onclick="exportRefreshCSV()">⬇ Export Updated CSV</button>
+      </div>
+    </div>
+    <div style="max-height:calc(100vh - 250px);overflow-y:auto;border:1px solid var(--graphite);border-radius:6px">
+      <div class="refresh-row rf-hdr">
+        <div>#</div><div>Old Title</div><div>SS26 Title</div><div>Aesthetic</div><div>Days</div><div>Action</div>
+      </div>
+      <div id="refreshRows"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NEW LISTING (link to wizard) ═══ -->
+<div class="panel" id="p-listing">
+  <div class="sh">New Listing — FBP Listing Wizard</div>
+  <div class="card" style="text-align:center;padding:2.5rem">
+    <div style="font-size:2.5rem;margin-bottom:1rem">🌺</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:.7rem">Your 11-Step Listing Wizard</div>
+    <div style="font-size:.85rem;color:var(--lt);margin-bottom:1.5rem;line-height:1.6">
+      Item Info → Photos & BG Removal → Measurements → Condition<br>
+      → AI Comp Research → SEO Title → AI Hashtags → AI Description<br>
+      → Cross-Listing → Review → Complete
+    </div>
+    <a href="listing-wizard.html" target="_blank" class="btn btn-pink" style="display:inline-block;text-decoration:none;padding:.75rem 2rem;font-size:.9rem">
+      Open Listing Wizard →
+    </a>
+    <div style="margin-top:1.5rem;display:flex;justify-content:center;gap:1rem">
+      <a href="style-cards.html" target="_blank" class="btn btn-ghost" style="text-decoration:none">🎨 Style Card Generator</a>
+    </div>
+  </div>
+  <div class="sh" style="margin-top:1.5rem">Quick Title Generator (no AI required)</div>
+  <div class="card">
+    <div class="card-t">SS26 Title Engine — Instant</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.7rem">
+      <div><label style="font-size:.6rem;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:.3rem">Brand</label>
+        <input id="qt-brand" placeholder="Express, Levi's…" style="width:100%"></div>
+      <div><label style="font-size:.6rem;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:.3rem">Category</label>
+        <select id="qt-cat" style="width:100%">
+          <option>Tops</option><option>Dresses</option><option>Jeans</option><option>Skirts</option>
+          <option>Sweaters</option><option>Boots</option><option>Jackets & Coats</option><option>Heels</option>
+          <option>Bags</option><option>Jewelry</option><option>Corsets</option><option>Activewear</option><option>Other</option>
+        </select></div>
+      <div><label style="font-size:.6rem;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:.3rem">Color</label>
+        <input id="qt-color" placeholder="Black, Red…" style="width:100%"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.5rem;margin-bottom:.7rem">
+      <div><label style="font-size:.6rem;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:.3rem">Size</label>
+        <input id="qt-size" placeholder="M, 10, XL" style="width:100%"></div>
+      <div><label style="font-size:.6rem;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:.3rem">Condition</label>
+        <select id="qt-cond" style="width:100%">
+          <option>New With Tags</option><option>New Without Tags</option><option>Excellent</option>
+          <option>Lovingly Worn — Great</option><option selected>Lovingly Worn — Good</option>
+          <option>Lovingly Worn Vintage</option><option>Lovingly Worn</option><option>Distressed</option>
+        </select></div>
+      <div><label style="font-size:.6rem;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:.3rem">Era</label>
+        <select id="qt-era" style="width:100%">
+          <option value="">None</option><option>Y2K</option><option>90s</option><option>80s</option><option>70s</option>
+        </select></div>
+      <div><label style="font-size:.6rem;color:var(--pink);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:.3rem">Keywords</label>
+        <input id="qt-kw" placeholder="lace, sheer, floral…" style="width:100%"></div>
+    </div>
+    <button class="btn btn-pink" onclick="quickTitle()" style="width:100%">✦ Generate SS26 Title</button>
+    <div id="qt-result" style="margin-top:.8rem;display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+        <span style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--pink);letter-spacing:.1em">GENERATED TITLE</span>
+        <button class="copy-btn" onclick="cpText('qt-title')">Copy</button>
+      </div>
+      <div id="qt-title" style="background:var(--graphite);padding:.7rem;border-radius:5px;border-left:3px solid var(--green-bright);
+        font-size:.85rem;font-weight:600;color:var(--green-bright);line-height:1.5"></div>
+      <div id="qt-chars" style="font-family:'DM Mono',monospace;font-size:.6rem;text-align:right;margin-top:.2rem;color:var(--mid)"></div>
+      <div style="display:flex;gap:.5rem;margin-top:.5rem">
+        <span id="qt-core" class="rf-aes"></span>
+        <span id="qt-sub" class="rf-aes" style="background:rgba(124,63,138,.15);color:var(--purple)"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PHOTO STUDIO (link) ═══ -->
+<div class="panel" id="p-photo">
+  <div class="sh">Photo Studio — BG Removal & Editing</div>
+  <div class="card" style="text-align:center;padding:2.5rem">
+    <div style="font-size:2.5rem;margin-bottom:1rem">📷</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:.7rem">Your Photo Editor</div>
+    <div style="font-size:.85rem;color:var(--lt);margin-bottom:1.5rem;line-height:1.6">
+      Background removal · Brightness/Contrast/Saturation · Rotate<br>
+      · Aspect ratios (Free/1:1/4:5/16:9) · FBP brand color backgrounds<br>
+      · Custom color wheel · Tolerance & feather controls · Download PNG
+    </div>
+    <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap">
+      <button class="btn btn-pink" style="padding:.75rem 2rem;font-size:.9rem" onclick="document.getElementById('embedPhoto').style.display='block';this.style.display='none'">
+        Open Photo Editor Here ↓
+      </button>
+    </div>
+  </div>
+  <div id="embedPhoto" style="display:none;margin-top:1rem">
+    <iframe id="photoFrame" style="width:100%;height:700px;border:1px solid var(--graphite);border-radius:8px;background:#f2f0eb"></iframe>
+  </div>
+</div>
+
+<!-- ═══ TODAY'S QUEUE ═══ -->
+<div class="panel" id="p-queue">
+  <div class="sh">Today's Work Queue</div>
+  <div id="queueNoCsv" style="text-align:center;padding:2rem;color:var(--mid);font-style:italic">
+    Upload a Vendoo CSV on the Dashboard tab to populate your daily work queue.
+  </div>
+  <div id="queueContent" style="display:none">
+    <div style="background:rgba(192,48,42,.1);border:1px solid rgba(192,48,42,.3);border-radius:8px;
+      padding:.8rem 1rem;margin-bottom:1rem;font-size:.75rem;color:#f0a0a0">
+      <strong style="color:var(--red)">Daily target: 10 relists.</strong>
+      Work top to bottom. Check off as you go. Highest value × oldest first.
+    </div>
+    <div style="max-height:calc(100vh - 250px);overflow-y:auto" id="queueTable"></div>
+  </div>
+</div>
+
+<footer>
+  <div>FUNKY BLACK POPPY · SECONDHAND IS SACRED · WEIRD IS WELCOME · @BLACKPOPPYMAGIK</div>
+  <div class="memorial">🐢 Turtle · May 29 2014 – March 17 2026 · 11:11 · "He didn't just leave. He was released."</div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// FBP COMMAND CENTER ENGINE
+// ═══════════════════════════════════════════════════════════════════════════════
+let csvData = null;
+let activeData = [], staleData = [], draftData = [], soldData = [];
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+function showPanel(id, tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('p-' + id).classList.add('active');
+  // Load photo iframe on first open
+  if (id === 'photo') {
+    const fr = document.getElementById('photoFrame');
+    if (!fr.src || fr.src === 'about:blank') {
+      // Check if photo editor exists in same folder
+      fr.srcdoc = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:sans-serif;color:#666;text-align:center;padding:2rem;">
+        <div><p style="font-size:1.2rem;margin-bottom:.5rem;">📷 Photo editor loads here</p>
+        <p style="font-size:.85rem;">Place your photo editor HTML file in the same folder as this file, or click "Open Photo Editor Here" above.</p></div></div>`;
+    }
+  }
+}
+
+// ── TITLE ENGINE (SS26 — proven against 1,648 records) ──────────────────────
+const AES_RULES = [
+  {kw:["tripp","hot topic","killstar","iron fist"],core:"Goth Punk",sub:"Alt Girl"},
+  {kw:["jean paul gaultier","jpg","moschino"],core:"Goth Couture",sub:"Designer Resale"},
+  {kw:["victoria secret","victoria's secret","vs pink"],core:"Dark Femme",sub:"Indie Sleaze"},
+  {kw:["lip service"],core:"Dark Femme",sub:"Goth Punk"},
+  {kw:["corset","bustier"],core:"Dark Femme",sub:"Indie Sleaze"},
+  {kw:["levi","gap 1969"],core:"Y2K Indie Sleaze",sub:"Low Rise Revival"},
+  {kw:["hollister","aeropostale","american eagle"],core:"Y2K Mall Rat",sub:"Indie Sleaze"},
+  {kw:["ann taylor","banana republic","express","the limited","chico"],core:"Corp Goth",sub:"Dark Academia"},
+  {kw:["tommy hilfiger","ralph lauren","polo","nautica"],core:"Corp Goth",sub:"Preppy Alt"},
+  {kw:["free people","anthropologie","madewell"],core:"Dark Cottagecore",sub:"Boho Witchy"},
+  {kw:["roxy","billabong"],core:"Grunge Luxe",sub:"Surf Punk"},
+  {kw:["spyder","north face","columbia","patagonia","helly","fabletics","lululemon","nike","under armour"],core:"Gorpcore",sub:"Athletic Alt"},
+  {kw:["betsey johnson"],core:"Whimsy Goth",sub:"Dark Romance"},
+  {kw:["vera wang","simply vera"],core:"Dark Femme",sub:"Y2K Noir"},
+  {kw:["material girl"],core:"Glam Core",sub:"Y2K Noir"},
+  {kw:["leopard","animal print","snake","cheetah","zebra"],core:"Mob Wife",sub:"Dark Glam"},
+  {kw:["lace","sheer","mesh","chiffon","eyelet"],core:"Dark Romance",sub:"Cottagecore"},
+  {kw:["velvet"],core:"Dark Romance",sub:"Luxe Gothic"},
+  {kw:["satin","silk"],core:"Dark Femme",sub:"Luxe Gothic"},
+  {kw:["crochet","knit"],core:"Dark Cottagecore",sub:"Boho Goth"},
+  {kw:["sequin","glitter","metallic"],core:"Dark Glam",sub:"Glam Core"},
+  {kw:["plaid","flannel","tartan"],core:"Grunge",sub:"90s Revival"},
+  {kw:["floral","botanical","rose"],core:"Dark Cottagecore",sub:"Fairycore"},
+  {kw:["western","cowboy","tony lama"],core:"Cowboy Core",sub:"Y2K Western"},
+  {kw:["ski","snowboard","snow bib"],core:"Gorpcore",sub:"Y2K Outdoor"},
+  {kw:["maxi","midi","babydoll"],core:"Boho Goth",sub:"Dark Romance"},
+  {kw:["goth","punk","alt girl"],core:"Goth Punk",sub:"Dark Fashion"},
+  {kw:["vintage","vtg","1990","1991","1992","1993","1994","1995","1996","1997","1998","1999"],core:"Vintage Altwear",sub:"Rebel Curator"},
+];
+const CAT_DEF = {
+  "Dresses":{core:"Boho Goth",sub:"Dark Romance"},"Tops":{core:"Alt Fashion",sub:"Dark Femme"},
+  "Jeans":{core:"Y2K Indie Sleaze",sub:"Low Rise Revival"},"Skirts":{core:"Corp Goth",sub:"Dark Academia"},
+  "Sweaters":{core:"Dark Academia",sub:"Grunge Luxe"},"Boots":{core:"Alt Footwear",sub:"Dark Fashion"},
+  "Jackets & Coats":{core:"Dark Outerwear",sub:"Corp Goth"},"Heels":{core:"Dark Femme",sub:"Glam Core"},
+  "Bags":{core:"Dark Accessory",sub:"Corp Goth"},"Jewelry":{core:"Dark Jewelry",sub:"Witchy"},
+  "Corsets":{core:"Dark Femme",sub:"Goth Punk"},"Activewear":{core:"Gorpcore",sub:"Dark Active"},
+  "Other":{core:"Vintage Altwear",sub:"Rebel Curator"},
+};
+const COND_FLAGS = {"New With Tags":"NWT","New Without Tags":"NWOT","Excellent":"Excellent",
+  "Lovingly Worn — Great":"Lovingly Worn","Lovingly Worn — Good":"Lovingly Worn",
+  "Lovingly Worn Vintage":"Lovingly Worn Vtg","Lovingly Worn":"Lovingly Worn","Distressed":"Distressed Vtg",
+  "Pre-Owned - Excellent":"Excellent","Pre-Owned - Good":"Lovingly Worn","Pre-Owned ":"Lovingly Worn",
+  "New With Tags/Box":"NWT","New Without Tags/Box":"NWOT"};
+const SPRING_MAP = {lace:"Spring Sheer",sheer:"Spring Sheer",mesh:"Spring Sheer",
+  crochet:"Spring Crochet",floral:"Spring Floral",corset:"Corset Trend",maxi:"Spring Maxi"};
+const STOPS = new Set(["womens","women","mens","men","vintage","size","nwot","nwt","pre","owned",
+  "good","excellent","the","and","with","for","from","this","large","medium","small","ladies",
+  "new","tags","box","sale","vtg","item","style","fashion","wear","very","great"]);
+
+function detectAes(brand, cat, kw) {
+  const s = `${brand} ${cat} ${kw}`.toLowerCase();
+  for (const r of AES_RULES) if (r.kw.some(k => s.includes(k))) return r;
+  return CAT_DEF[cat] || {core:"Vintage Altwear", sub:"Rebel Curator"};
+}
+function genTitle(title, brand, cat, cond, color, kw) {
+  const aes = detectAes(brand || '', cat || '', `${title} ${kw}`);
+  const cf = COND_FLAGS[cond] || 'Lovingly Worn';
+  let spring = '';
+  const all = `${title} ${kw}`.toLowerCase();
+  for (const [k,v] of Object.entries(SPRING_MAP)) if (all.includes(k)) { spring = v; break; }
+  const size_m = (title || '').match(/\b(XS|XXS|S|M|L|XL|XXL|XXXL|2X|3X|\d{1,2}[WRL]?)\b/);
+  const size = size_m ? size_m[0] : '';
+  let era = '';
+  if (/90s|199\d/.test(title||'')) era = '90s';
+  else if (/y2k|200[0-4]/i.test(title||'')) era = 'Y2K';
+  const cleanBrand = (brand || '').substring(0, 25);
+  const cleanColor = (color && color !== 'Multicolor') ? color : '';
+  const covered = `${aes.core} ${aes.sub} ${cleanBrand} ${cleanColor} ${cat}`.toLowerCase();
+  const feats = (kw || title || '').split(/[\s,]+/)
+    .filter(w => w.length > 3 && !STOPS.has(w.toLowerCase()) && !covered.includes(w.toLowerCase()))
+    .slice(0, 2);
+  const catShort = (cat || '').split(' & ')[0].split(',')[0];
+  const parts = [aes.core, aes.sub !== aes.core ? aes.sub : '', cf, cleanBrand, cleanColor,
+    catShort, feats.join(' '), size, era, spring].filter(Boolean);
+  let result = parts.join(' ');
+  if (result.length > 140) result = result.substring(0, 137).replace(/\s\S*$/, '') + '...';
+  return { title: result, core: aes.core, sub: aes.sub };
+}
+
+// ── CSV PARSER ──────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  // Proper CSV parser that handles newlines inside quoted Description fields
+  const rows = [];
+  const headers = [];
+  let current = '';
+  let inQuotes = false;
+  let fields = [];
+  let isHeader = true;
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    const next = text[i + 1];
+
+    if (c === '"') {
+      if (inQuotes && next === '"') {
+        current += '"'; // escaped quote
+        i++; // skip next
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (c === ',' && !inQuotes) {
+      fields.push(current);
+      current = '';
+    } else if ((c === '\n' || (c === '\r' && next === '\n')) && !inQuotes) {
+      if (c === '\r') i++; // skip \n after \r
+      fields.push(current);
+      current = '';
+      if (isHeader) {
+        fields.forEach(f => headers.push(f.trim()));
+        isHeader = false;
+      } else if (fields.length >= 2) {
+        const row = {};
+        headers.forEach((h, j) => row[h] = (fields[j] || '').trim());
+        if (row.Title || row.Status) rows.push(row);
+      }
+      fields = [];
+    } else if (c === '\r' && !inQuotes) {
+      // standalone \r — treat as line ending
+      fields.push(current);
+      current = '';
+      if (isHeader) {
+        fields.forEach(f => headers.push(f.trim()));
+        isHeader = false;
+      } else if (fields.length >= 2) {
+        const row = {};
+        headers.forEach((h, j) => row[h] = (fields[j] || '').trim());
+        if (row.Title || row.Status) rows.push(row);
+      }
+      fields = [];
+    } else {
+      current += c;
+    }
+  }
+  // Last row
+  if (fields.length > 0 || current) {
+    fields.push(current);
+    if (!isHeader && fields.length >= 2) {
+      const row = {};
+      headers.forEach((h, j) => row[h] = (fields[j] || '').trim());
+      if (row.Title || row.Status) rows.push(row);
+    }
+  }
+  return rows;
+}
+
+// ── CSV UPLOAD HANDLER ──────────────────────────────────────────────────────
+document.getElementById('csvInput').addEventListener('change', function(e) {
+  if (!e.target.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    csvData = parseCSV(ev.target.result);
+    processCSV();
+  };
+  reader.readAsText(e.target.files[0]);
+});
+
+function processCSV() {
+  if (!csvData || !csvData.length) return;
+  const today = new Date();
+
+  // Segment
+  activeData = csvData.filter(r => r.Status === 'Active');
+  draftData = csvData.filter(r => r.Status === 'Draft');
+  soldData = csvData.filter(r => r.Status === 'Sold' || r.Status === 'Shipped');
+
+  // Days live
+  activeData.forEach(r => {
+    if (r['Listed Date']) {
+      const d = new Date(r['Listed Date']);
+      r._days = Math.floor((today - d) / 86400000);
+    } else r._days = 0;
+  });
+  staleData = activeData.filter(r => r._days >= 45);
+
+  // Generate SS26 titles for all active
+  activeData.forEach(r => {
+    const t = genTitle(r.Title, r.Brand, r.Category, r.Condition, r['Primary Color'], r.Tags);
+    r._newTitle = t.title;
+    r._core = t.core;
+    r._sub = t.sub;
+  });
+
+  // Update header KPIs
+  document.getElementById('hk-active').textContent = activeData.length;
+  document.getElementById('hk-stale').textContent = staleData.length;
+  document.getElementById('hk-drafts').textContent = draftData.length;
+  document.getElementById('hk-sold').textContent = soldData.length;
+
+  // Build dashboard
+  buildDashboard();
+  buildRefreshQueue();
+  buildWorkQueue();
+
+  document.getElementById('dashContent').style.display = 'block';
+  document.getElementById('noCsv').style.display = 'none';
+  document.getElementById('refreshNoCsv').style.display = 'none';
+  document.getElementById('refreshContent').style.display = 'block';
+  document.getElementById('queueNoCsv').style.display = 'none';
+  document.getElementById('queueContent').style.display = 'block';
+}
+
+// ── BUILD DASHBOARD ─────────────────────────────────────────────────────────
+function buildDashboard() {
+  const totalValue = activeData.reduce((s, r) => s + (parseFloat(r.Price) || 0), 0);
+  const soldRevenue = soldData.reduce((s, r) => s + (parseFloat(r['Price Sold']) || 0), 0);
+  const avgPrice = activeData.length ? (totalValue / activeData.length) : 0;
+  const blanks = draftData.filter(r => !r.Title || r.Title.trim() === '').length;
+  const incomplete = draftData.length - blanks;
+
+  // KPIs
+  const kpis = [
+    {n: activeData.length, l: "Active Listings", cls: "pink", s: "All platforms", sc: ""},
+    {n: staleData.length, l: "Stale 45+ Days", cls: "red", s: `${Math.round(staleData.length/Math.max(activeData.length,1)*100)}% of active`, sc: "bad"},
+    {n: draftData.length, l: "Total Drafts", cls: "gold", s: `${blanks} blank · ${incomplete} incomplete`, sc: "warn"},
+    {n: soldData.length, l: "Total Sold", cls: "purple", s: `$${soldRevenue.toLocaleString(undefined,{minimumFractionDigits:0})} revenue`, sc: "good"},
+    {n: `$${totalValue.toLocaleString(undefined,{minimumFractionDigits:0})}`, l: "Active Value", cls: "green", s: `Avg $${avgPrice.toFixed(0)}/item`, sc: ""},
+  ];
+  document.getElementById('kpiGrid').innerHTML = kpis.map(k =>
+    `<div class="kpi ${k.cls}"><div class="kpi-n">${k.n}</div><div class="kpi-l">${k.l}</div>
+     <div class="kpi-s ${k.sc}">${k.s}</div></div>`).join('');
+
+  // Stale breakdown
+  const buckets = [{l:"45-60d",min:45,max:60,c:"var(--gold)"},{l:"60-90d",min:60,max:90,c:"var(--gold)"},
+    {l:"90-180d",min:90,max:180,c:"var(--red)"},{l:"180d-1yr",min:180,max:365,c:"var(--red)"},
+    {l:"1-2yr",min:365,max:730,c:"#cc4444"},{l:"2yr+",min:730,max:99999,c:"#882222"}];
+  const maxBucket = Math.max(...buckets.map(b => staleData.filter(r => r._days >= b.min && r._days < b.max).length), 1);
+  document.getElementById('staleBreakdown').innerHTML = buckets.map(b => {
+    const ct = staleData.filter(r => r._days >= b.min && r._days < b.max).length;
+    const pct = (ct / maxBucket * 100).toFixed(0);
+    return `<div class="sb-row"><div class="sb-label" style="color:${b.c}">${b.l}</div>
+      <div class="sb-track"><div class="sb-fill" style="width:${pct}%;background:${b.c}"></div></div>
+      <div class="sb-ct" style="color:${b.c}">${ct}</div></div>`;
+  }).join('');
+
+  // Platform coverage
+  const platforms = ['Etsy','Poshmark','Depop','Mercari','eBay','Facebook','Whatnot'];
+  const platColors = ['#E85A0A','#c96b82','#2d9a55','#7c3f8a','#4A80B0','#3b5998','#555'];
+  document.getElementById('platCoverage').innerHTML = platforms.map((p, i) => {
+    const ct = activeData.filter(r => (r['Listing Platforms']||'').toLowerCase().includes(p.toLowerCase())).length;
+    const pct = (ct / Math.max(activeData.length, 1) * 100).toFixed(0);
+    return `<div class="plat-row"><div class="plat-dot" style="background:${platColors[i]}"></div>
+      <div class="plat-name">${p}</div>
+      <div class="plat-track"><div class="plat-fill" style="width:${pct}%;background:${platColors[i]}"></div></div>
+      <div class="plat-ct">${ct} (${pct}%)</div></div>`;
+  }).join('');
+
+  // Categories
+  const cats = {};
+  activeData.forEach(r => { const c = r.Category || 'Other'; cats[c] = (cats[c]||0)+1; });
+  const sortedCats = Object.entries(cats).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  document.getElementById('catBreakdown').innerHTML = sortedCats.map(([c,n]) =>
+    `<div style="display:flex;justify-content:space-between;font-size:.72rem;padding:.25rem 0;border-bottom:1px solid var(--graphite)">
+      <span>${c}</span><span style="color:var(--pink);font-weight:700">${n}</span></div>`).join('');
+
+  // Revenue
+  const soldByPlat = {};
+  soldData.forEach(r => { const p = r['Sold Platform'] || 'Unknown'; soldByPlat[p] = (soldByPlat[p]||0) + (parseFloat(r['Price Sold'])||0); });
+  document.getElementById('revSummary').innerHTML =
+    `<div style="font-size:.72rem;line-height:2">
+      <div>Total Revenue: <strong style="color:var(--green-bright)">$${soldRevenue.toLocaleString()}</strong></div>
+      <div>Total Sales: <strong>${soldData.length}</strong></div>
+      <div>Avg Sale: <strong>$${(soldRevenue/Math.max(soldData.length,1)).toFixed(2)}</strong></div>
+      <hr style="border:none;border-top:1px solid var(--graphite);margin:.3rem 0">
+      ${Object.entries(soldByPlat).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([p,v]) =>
+        `<div>${p}: <strong>$${v.toFixed(0)}</strong></div>`).join('')}
+    </div>`;
+
+  // Actions
+  const readyDrafts = draftData.filter(r => r.Title && r.Price && parseFloat(r.Price) > 0).length;
+  const notOnEtsy = activeData.filter(r => !(r['Listing Platforms']||'').toLowerCase().includes('etsy')).length;
+  document.getElementById('actions').innerHTML = [
+    readyDrafts > 0 ? `<div class="act urgent"><div class="act-icon">🚀</div><div><div class="act-t">Publish ${readyDrafts} ready drafts</div><div class="act-s">Have title + price. List them now.</div></div></div>` : '',
+    `<div class="act urgent"><div class="act-icon">🔴</div><div><div class="act-t">${staleData.length} stale listings</div><div class="act-s">Go to Title Refresh tab → update + relist.</div></div></div>`,
+    blanks > 0 ? `<div class="act warn"><div class="act-icon">🗑️</div><div><div class="act-t">Delete ${blanks} blank shells</div><div class="act-s">Empty Vendoo records cluttering inventory.</div></div></div>` : '',
+    notOnEtsy > 0 ? `<div class="act warn"><div class="act-icon">📡</div><div><div class="act-t">${notOnEtsy} items not on Etsy</div><div class="act-s">Highest margin platform. Add via Vendoo crosslist.</div></div></div>` : '',
+    `<div class="act good"><div class="act-icon">🌸</div><div><div class="act-t">SS26 title refresh ready</div><div class="act-s">All ${activeData.length} titles regenerated. Go to Title Refresh tab.</div></div></div>`,
+  ].filter(Boolean).join('');
+}
+
+// ── BUILD REFRESH QUEUE ─────────────────────────────────────────────────────
+function buildRefreshQueue() {
+  const sorted = [...activeData].sort((a, b) => (b._days || 0) - (a._days || 0));
+  document.getElementById('refreshCount').textContent = sorted.length;
+  document.getElementById('refreshRows').innerHTML = sorted.map((r, i) => {
+    const daysCls = r._days >= 365 ? 'critical' : r._days >= 90 ? 'old' : '';
+    return `<div class="refresh-row">
+      <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--mid)">${i+1}</div>
+      <div class="rf-old">${(r.Title||'—').substring(0,55)}</div>
+      <div class="rf-new">${(r._newTitle||'—').substring(0,60)}</div>
+      <div><span class="rf-aes">${r._core||''}</span></div>
+      <div><span class="rf-days ${daysCls}">${r._days||0}</span></div>
+      <div><input type="checkbox" class="rf-check" onchange="this.closest('.refresh-row').style.opacity=this.checked?'0.35':'1'"></div>
+    </div>`;
+  }).join('');
+}
+
+// ── BUILD WORK QUEUE ────────────────────────────────────────────────────────
+function buildWorkQueue() {
+  const sorted = [...staleData].sort((a, b) => {
+    const scoreA = (a._days || 0) * (parseFloat(a.Price) || 1);
+    const scoreB = (b._days || 0) * (parseFloat(b.Price) || 1);
+    return scoreB - scoreA;
+  }).slice(0, 25);
+
+  document.getElementById('queueTable').innerHTML = `
+    <table class="tbl"><thead><tr>
+      <th>#</th><th>Item</th><th>Price</th><th>Days</th><th>SS26 Title</th><th>Aesthetic</th><th>Done</th>
+    </tr></thead><tbody>
+    ${sorted.map((r, i) => {
+      const days = r._days || 0;
+      const daysBg = days >= 1461 ? 'rgba(192,48,42,.3)' : days >= 365 ? 'rgba(192,48,42,.15)' : 'rgba(184,150,90,.15)';
+      return `<tr>
+        <td style="font-weight:700;color:${i<5?'var(--red)':i<15?'var(--gold)':'var(--mid)'}">${i+1}</td>
+        <td>${(r.Title||'—').substring(0,50)}<br><span style="font-size:.6rem;color:var(--mid)">${r.Brand||''} · ${r.Category||''}</span></td>
+        <td style="font-weight:700">$${parseFloat(r.Price||0).toFixed(0)}</td>
+        <td><span style="background:${daysBg};padding:.15rem .4rem;border-radius:3px;font-weight:700;font-size:.7rem">${days}d</span></td>
+        <td class="new-title" style="font-size:.7rem">${(r._newTitle||'').substring(0,55)}</td>
+        <td><span class="rf-aes">${r._core||''}</span></td>
+        <td><input type="checkbox" class="rf-check" onchange="this.closest('tr').style.opacity=this.checked?'0.3':'1'"></td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
+}
+
+// ── QUICK TITLE GENERATOR ───────────────────────────────────────────────────
+function quickTitle() {
+  const brand = document.getElementById('qt-brand').value;
+  const cat = document.getElementById('qt-cat').value;
+  const color = document.getElementById('qt-color').value;
+  const size = document.getElementById('qt-size').value;
+  const cond = document.getElementById('qt-cond').value;
+  const era = document.getElementById('qt-era').value;
+  const kw = document.getElementById('qt-kw').value;
+  const t = genTitle('', brand, cat, cond, color, kw);
+  let title = t.title;
+  if (size && !title.includes(size)) title = title.replace(/\.\.\.$/,'') + ' ' + size;
+  if (era && !title.toLowerCase().includes(era.toLowerCase())) title += ' ' + era;
+  if (title.length > 140) title = title.substring(0, 137).replace(/\s\S*$/, '') + '...';
+  
+  // Build tags
+  const cf = COND_FLAGS[cond] || 'Lovingly Worn';
+  let spring = '';
+  for (const [k,v] of Object.entries(SPRING_MAP)) if ((kw||'').toLowerCase().includes(k)) { spring = v; break; }
+  const condTag = cond.includes('New With') ? 'nwt vintage' : cond.includes('Distressed') ? 'distressed vintage' : 'lovingly worn vintage';
+  const baseTags = [t.core.toLowerCase(), t.sub.toLowerCase(), brand.toLowerCase(),
+    color ? `${color.toLowerCase()} ${cat.toLowerCase()}` : '', `${cat.toLowerCase()} vintage`,
+    `${t.core.toLowerCase()} style`, era ? `${era.toLowerCase()} fashion` : '',
+    spring ? spring.toLowerCase() : '', 'funkyblackpoppy', 'vintage find', 'rebel curator',
+    size ? `size ${size.toLowerCase()}` : '', condTag].filter(Boolean);
+  const kwTags = (kw||'').split(/[\s,]+/).filter(w => w.length > 3 && !STOPS.has(w.toLowerCase())).slice(0,4).map(w => w.toLowerCase());
+  const tags = [...new Set([...baseTags, ...kwTags])].slice(0, 13);
+  
+  // Build description
+  const condCopy = {
+    "New With Tags":"New with tags — never worn. Factory fresh.",
+    "New Without Tags":"New without tags — unworn, in perfect condition.",
+    "Excellent":"Excellent condition. Minimal to no signs of wear.",
+    "Lovingly Worn — Great":"Lovingly worn — great condition. Light wear. Still showing up beautifully.",
+    "Lovingly Worn — Good":"Lovingly worn — good condition. Some signs of wear. Please review all photos.",
+    "Lovingly Worn Vintage":"Lovingly worn vintage. This piece has lived a life. Vintage runs its own rules.",
+    "Lovingly Worn":"Lovingly worn. Please review all photos carefully.",
+    "Distressed":"Distressed — the wear is the aesthetic. Not a flaw. This is the vibe.",
+  }[cond] || 'Vintage condition.';
+  const desc = `${t.core} · ${t.sub} · ${era||'Vintage'} · Rebel Curator Find
+
+${color||''} ${cat}${size?' · Size '+size:''}${brand?' · '+brand:''}
+
+${condCopy}
+
+✦ Brand: ${brand||'See photos'}
+✦ Color: ${color||'See photos'}
+✦ Size: ${size||'See photos'}
+✦ Condition: ${cf}${kw?'\n✦ Details: '+kw:''}
+
+Vintage with Teeth. Couture with Roots.
+Find It. Flip It. Elevate It. 🖤
+XxO Rachael Nike · @blackpoppymagik`;
+
+  document.getElementById('qt-title').textContent = title;
+  document.getElementById('qt-chars').textContent = title.length + ' / 140' + (title.length > 140 ? ' — OVER' : '');
+  document.getElementById('qt-chars').style.color = title.length > 140 ? 'var(--red)' : 'var(--mid)';
+  document.getElementById('qt-core').textContent = t.core;
+  document.getElementById('qt-sub').textContent = t.sub;
+  
+  // Show tags + description
+  let extraHTML = `<div style="margin-top:.8rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+    <span style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--pink);letter-spacing:.1em">SEO TAGS (${tags.length}/13)</span>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('${tags.join(', ').replace(/'/g,"\\'")}')">Copy Tags</button></div>
+    <div>${tags.map((tg,i) => `<span style="display:inline-block;margin:2px 2px 2px 0;padding:2px 8px;border-radius:12px;font-size:.65rem;
+      background:${i<3?'rgba(201,107,130,.15)':i<7?'rgba(124,63,138,.15)':'rgba(30,96,96,.15)'};
+      border:1px solid ${i<3?'rgba(201,107,130,.4)':i<7?'rgba(124,63,138,.4)':'rgba(30,96,96,.4)'};
+      color:${i<3?'var(--pink-deep)':i<7?'var(--purple)':'var(--green)'}">${tg}</span>`).join('')}</div></div>`;
+  extraHTML += `<div style="margin-top:.8rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+    <span style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--pink);letter-spacing:.1em">LISTING DESCRIPTION</span>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('qt-desc').textContent)">Copy Desc</button></div>
+    <div id="qt-desc" style="background:var(--graphite);padding:.7rem;border-radius:5px;border-left:3px solid var(--pink-deep);
+      font-size:.72rem;line-height:1.6;white-space:pre-wrap;color:var(--lt);max-height:200px;overflow-y:auto">${desc}</div></div>`;
+  extraHTML += `<button class="btn btn-pink" style="width:100%;margin-top:.8rem" onclick="navigator.clipboard.writeText('TITLE:\\n'+document.getElementById('qt-title').textContent+'\\n\\nTAGS:\\n${tags.join(', ').replace(/'/g,"\\'")}\\n\\nDESCRIPTION:\\n'+document.getElementById('qt-desc').textContent)">📋 Copy Full Listing (Title + Tags + Description)</button>`;
+  
+  let container = document.getElementById('qt-extras');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'qt-extras';
+    document.getElementById('qt-result').appendChild(container);
+  }
+  container.innerHTML = extraHTML;
+  document.getElementById('qt-result').style.display = 'block';
+}
+
+// ── COPY HELPERS ────────────────────────────────────────────────────────────
+function cpText(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+function copyAllTitles() {
+  if (!activeData.length) return;
+  const lines = activeData.map(r => `${r.Title||''}\t${r._newTitle||''}\t${r._core||''}`);
+  navigator.clipboard.writeText('OLD TITLE\tSS26 TITLE\tAESTHETIC\n' + lines.join('\n')).catch(() => {});
+  alert(`Copied ${activeData.length} titles to clipboard (tab-separated — paste into Google Sheets or Excel)`);
+}
+function exportRefreshCSV() {
+  if (!activeData.length) return;
+  const headers = ['Old Title','SS26 Title','Core Aesthetic','Sub Aesthetic','Brand','Category','Price','Days Live','Platforms'];
+  const rows = activeData.map(r => [
+    `"${(r.Title||'').replace(/"/g,'""')}"`,
+    `"${(r._newTitle||'').replace(/"/g,'""')}"`,
+    r._core, r._sub, r.Brand, r.Category, r.Price, r._days, r['Listing Platforms']
+  ].join(','));
+  const csv = headers.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `FBP_SS26_Title_Refresh_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+// ── INIT ────────────────────────────────────────────────────────────────────
+// If there's a vendoo CSV in localStorage from a previous session, offer to reload
+</script>
+</body>
+</html>

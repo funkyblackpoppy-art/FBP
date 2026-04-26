@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌺 FBP — Style Card Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@400;500&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#0a0a0a; --charcoal:#161616; --graphite:#242424; --dim:#363636;
+  --mid:#6b6b6b; --lt:#c0c0c0; --off-white:#f0ece6;
+  --pink:#f2c4d0; --pink-deep:#c96b82; --pink-pale:#faeaee;
+  --purple:#7c3f8a; --purple-lt:#e0cceb;
+  --red:#c0302a; --red-lt:#f0d8d5;
+  --gray:#888888;
+  --gold:#b8965a;
+  --border:#262626;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Jost',sans-serif;background:var(--black);color:var(--off-white);min-height:100vh;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.7}
+
+/* ── HEADER ── */
+header{background:var(--black);border-bottom:1px solid var(--graphite);padding:0 2rem;height:60px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--red) 20%,var(--pink) 50%,var(--purple) 80%,transparent)}
+.logo{display:flex;align-items:center;gap:.85rem;text-decoration:none}
+.logo-icon{width:30px;height:33px}
+.logo-text{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;letter-spacing:.12em;color:var(--off-white)}
+.logo-text span{color:var(--pink)}
+.hnav{font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);cursor:pointer;transition:color .2s;text-decoration:none}
+.hnav:hover,.hnav.active{color:var(--pink)}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-columns:380px 1fr;min-height:calc(100vh - 60px)}
+.sidebar{background:var(--charcoal);border-right:1px solid var(--graphite);padding:1.5rem;overflow-y:auto;height:calc(100vh - 60px);position:sticky;top:60px}
+.canvas-area{padding:2rem;overflow-y:auto}
+
+/* ── SIDEBAR ── */
+.sb-section{margin-bottom:1.75rem}
+.sb-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--off-white);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem}
+.sb-title::before{content:'';width:3px;height:1em;background:linear-gradient(180deg,var(--red),var(--pink));border-radius:2px;flex-shrink:0}
+
+/* inventory selector */
+.inv-items{display:flex;flex-direction:column;gap:.4rem;max-height:240px;overflow-y:auto}
+.inv-row{padding:.55rem .75rem;border:1px solid var(--graphite);border-radius:4px;cursor:pointer;transition:all .15s;display:flex;justify-content:space-between;align-items:center}
+.inv-row:hover{border-color:var(--pink-deep);background:rgba(242,196,208,.04)}
+.inv-row.selected{border-color:var(--pink-deep);background:rgba(242,196,208,.07)}
+.ir-left{display:flex;flex-direction:column;gap:.15rem}
+.ir-sku{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--pink);letter-spacing:.06em}
+.ir-name{font-size:.8rem;color:var(--lt)}
+.ir-price{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--gray)}
+.no-inv{font-size:.8rem;color:var(--mid);text-align:center;padding:1rem;font-style:italic}
+
+/* card style picker */
+.style-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.style-tile{border:1.5px solid var(--graphite);border-radius:6px;padding:.65rem .5rem;text-align:center;cursor:pointer;transition:all .18s;background:var(--black)}
+.style-tile:hover{border-color:var(--pink-deep)}
+.style-tile.active{border-color:var(--pink);background:rgba(242,196,208,.06)}
+.style-tile .st-prev{width:100%;height:42px;border-radius:3px;margin-bottom:.4rem;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.style-tile .st-name{font-size:.65rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mid)}
+.style-tile.active .st-name{color:var(--pink)}
+
+/* format picker */
+.format-pills{display:flex;gap:.4rem;flex-wrap:wrap}
+.fmt-pill{padding:.3rem .75rem;border:1px solid var(--graphite);border-radius:20px;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .15s;background:var(--black);color:var(--mid)}
+.fmt-pill:hover{border-color:var(--pink-deep);color:var(--lt)}
+.fmt-pill.active{background:var(--pink-deep);border-color:var(--pink-deep);color:white}
+
+/* color controls */
+.color-row{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.c-swatch{width:28px;height:28px;border-radius:50%;border:2px solid var(--graphite);cursor:pointer;transition:all .15s;flex-shrink:0}
+.c-swatch:hover{transform:scale(1.1)}
+.c-swatch.active{border-color:var(--pink);box-shadow:0 0 0 2px rgba(242,196,208,.3);transform:scale(1.15)}
+
+/* text inputs */
+.fg{margin-bottom:.85rem}
+.fg label{display:block;font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--lt);margin-bottom:.35rem}
+.fg input,.fg textarea,.fg select{width:100%;padding:.52rem .78rem;background:var(--black);border:1px solid var(--graphite);border-radius:4px;color:var(--off-white);font-family:'Jost',sans-serif;font-size:.85rem;outline:none;transition:border-color .18s}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--pink)}
+.fg textarea{resize:vertical;min-height:70px}
+
+/* AI caption button */
+.ai-cap-btn{width:100%;padding:.62rem;background:linear-gradient(135deg,var(--purple),var(--pink-deep));border:none;border-radius:5px;color:white;font-family:'Jost',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:opacity .18s;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.ai-cap-btn:hover{opacity:.88}
+.ai-cap-btn:disabled{opacity:.35;cursor:not-allowed}
+.ai-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* generate button */
+.gen-btn{width:100%;padding:.75rem;background:var(--pink-deep);border:none;border-radius:5px;color:white;font-family:'Jost',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;transition:all .18s;letter-spacing:.04em;margin-top:.5rem}
+.gen-btn:hover{background:#b05570}
+
+/* ── CANVAS AREA ── */
+.canvas-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem}
+.canvas-header h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--off-white)}
+.canvas-actions{display:flex;gap:.6rem;flex-wrap:wrap}
+.act-btn{padding:.45rem .95rem;border-radius:4px;border:1px solid var(--graphite);background:transparent;color:var(--lt);font-family:'Jost',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.4rem}
+.act-btn:hover{border-color:var(--pink-deep);color:var(--pink)}
+.act-btn.primary{background:var(--pink-deep);border-color:var(--pink-deep);color:white}
+.act-btn.primary:hover{background:#b05570}
+
+/* card container */
+.card-container{display:flex;justify-content:center;align-items:flex-start;min-height:400px}
+.card-wrap{position:relative}
+
+/* ── THE ACTUAL SOCIAL CARDS ── */
+/* Base canvas for all cards */
+.social-card{
+  position:relative;overflow:hidden;
+  font-family:'Jost',sans-serif;
+  user-select:none;
+  box-shadow:0 20px 60px rgba(0,0,0,.7);
+}
+
+/* STYLE: Editorial Dark */
+.card-editorial{
+  background:var(--black);
+  color:var(--off-white);
+}
+.card-editorial .card-header{
+  padding:1.2rem 1.4rem .8rem;
+  border-bottom:1px solid var(--graphite);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-editorial .card-logo{display:flex;align-items:center;gap:.5rem}
+.card-editorial .card-logo-text{font-family:'Playfair Display',serif;font-size:.82rem;letter-spacing:.14em;color:var(--off-white)}
+.card-editorial .card-logo-text span{color:var(--pink)}
+.card-editorial .card-sku{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--mid);letter-spacing:.1em}
+.card-editorial .card-img-zone{
+  width:100%;aspect-ratio:1;background:var(--charcoal);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.card-editorial .card-img-zone img{width:100%;height:100%;object-fit:cover}
+.card-editorial .card-img-zone .no-img{text-align:center;color:var(--mid);font-size:.8rem}
+.card-editorial .card-price-badge{
+  position:absolute;top:.85rem;right:.85rem;
+  background:var(--pink-deep);color:white;
+  font-family:'Playfair Display',serif;font-size:1.1rem;
+  padding:.3rem .75rem;border-radius:2px;
+  box-shadow:0 2px 12px rgba(192,48,42,.4);
+}
+.card-editorial .card-body{padding:1rem 1.4rem}
+.card-editorial .card-brand{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--pink);margin-bottom:.25rem}
+.card-editorial .card-title{font-family:'Playfair Display',serif;font-size:1.05rem;line-height:1.3;color:var(--off-white);margin-bottom:.5rem}
+.card-editorial .card-meta{font-size:.72rem;color:var(--mid);display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.65rem}
+.card-editorial .card-caption{font-size:.78rem;line-height:1.6;color:var(--lt);margin-bottom:.65rem}
+.card-editorial .card-tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.card-editorial .card-tag{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--pink);background:rgba(242,196,208,.08);padding:.15rem .45rem;border-radius:2px}
+.card-editorial .card-footer{
+  padding:.7rem 1.4rem;border-top:1px solid var(--graphite);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-editorial .card-footer-brand{font-family:'Playfair Display',serif;font-size:.72rem;color:var(--mid);letter-spacing:.08em}
+.card-editorial .card-footer-link{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--pink-deep);letter-spacing:.06em}
+
+/* STYLE: Soft Pink */
+.card-soft{
+  background:var(--pink-pale);
+  color:var(--black);
+}
+.card-soft .card-header{padding:1.1rem 1.3rem .7rem;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between}
+.card-soft .card-logo-text{font-family:'Playfair Display',serif;font-size:.82rem;letter-spacing:.14em;color:var(--black)}
+.card-soft .card-logo-text span{color:var(--pink-deep)}
+.card-soft .card-sku{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--gray);letter-spacing:.1em}
+.card-soft .card-img-zone{width:100%;aspect-ratio:1;background:#f0e4e8;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-soft .card-img-zone img{width:100%;height:100%;object-fit:cover}
+.card-soft .card-price-badge{position:absolute;top:.85rem;right:.85rem;background:var(--black);color:var(--pink);font-family:'Playfair Display',serif;font-size:1.1rem;padding:.3rem .75rem;border-radius:2px}
+.card-soft .card-body{padding:1rem 1.3rem}
+.card-soft .card-brand{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--pink-deep);margin-bottom:.25rem}
+.card-soft .card-title{font-family:'Playfair Display',serif;font-size:1rem;line-height:1.3;color:var(--black);margin-bottom:.45rem}
+.card-soft .card-meta{font-size:.72rem;color:var(--gray);display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.6rem}
+.card-soft .card-caption{font-size:.78rem;line-height:1.6;color:#444;margin-bottom:.6rem}
+.card-soft .card-tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.card-soft .card-tag{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--pink-deep);background:rgba(201,107,130,.12);padding:.15rem .45rem;border-radius:2px}
+.card-soft .card-footer{padding:.65rem 1.3rem;border-top:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between}
+.card-soft .card-footer-brand{font-family:'Playfair Display',serif;font-size:.72rem;color:var(--gray);letter-spacing:.08em}
+.card-soft .card-footer-link{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--pink-deep);letter-spacing:.06em}
+
+/* STYLE: Purple Reign */
+.card-purple{
+  background:linear-gradient(145deg,#120820,#1a0a2a,#0f0518);
+  color:var(--off-white);
+}
+.card-purple .card-header{padding:1.1rem 1.3rem .7rem;border-bottom:1px solid rgba(124,63,138,.3);display:flex;align-items:center;justify-content:space-between}
+.card-purple .card-logo-text{font-family:'Playfair Display',serif;font-size:.82rem;letter-spacing:.14em;color:var(--off-white)}
+.card-purple .card-logo-text span{color:var(--purple-lt)}
+.card-purple .card-sku{font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(224,204,235,.5);letter-spacing:.1em}
+.card-purple .card-img-zone{width:100%;aspect-ratio:1;background:rgba(124,63,138,.15);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-purple .card-img-zone img{width:100%;height:100%;object-fit:cover}
+.card-purple .card-price-badge{position:absolute;top:.85rem;right:.85rem;background:var(--purple);color:white;font-family:'Playfair Display',serif;font-size:1.1rem;padding:.3rem .75rem;border-radius:2px;box-shadow:0 2px 12px rgba(124,63,138,.5)}
+.card-purple .card-body{padding:1rem 1.3rem}
+.card-purple .card-brand{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--purple-lt);margin-bottom:.25rem}
+.card-purple .card-title{font-family:'Playfair Display',serif;font-size:1rem;line-height:1.3;color:var(--off-white);margin-bottom:.45rem}
+.card-purple .card-meta{font-size:.72rem;color:rgba(255,255,255,.45);display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.6rem}
+.card-purple .card-caption{font-size:.78rem;line-height:1.6;color:rgba(240,236,230,.7);margin-bottom:.6rem}
+.card-purple .card-tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.card-purple .card-tag{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--purple-lt);background:rgba(124,63,138,.2);padding:.15rem .45rem;border-radius:2px}
+.card-purple .card-footer{padding:.65rem 1.3rem;border-top:1px solid rgba(124,63,138,.3);display:flex;align-items:center;justify-content:space-between}
+.card-purple .card-footer-brand{font-family:'Playfair Display',serif;font-size:.72rem;color:rgba(255,255,255,.4);letter-spacing:.08em}
+.card-purple .card-footer-link{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--purple-lt);letter-spacing:.06em}
+
+/* STYLE: Red Noir */
+.card-red{
+  background:linear-gradient(145deg,#120202,#1a0404,#0d0000);
+  color:var(--off-white);
+}
+.card-red .card-header{padding:1.1rem 1.3rem .7rem;border-bottom:1px solid rgba(192,48,42,.25);display:flex;align-items:center;justify-content:space-between}
+.card-red .card-logo-text{font-family:'Playfair Display',serif;font-size:.82rem;letter-spacing:.14em;color:var(--off-white)}
+.card-red .card-logo-text span{color:#f0a0a0}
+.card-red .card-sku{font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(240,160,160,.5);letter-spacing:.1em}
+.card-red .card-img-zone{width:100%;aspect-ratio:1;background:rgba(192,48,42,.1);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-red .card-img-zone img{width:100%;height:100%;object-fit:cover}
+.card-red .card-price-badge{position:absolute;top:.85rem;right:.85rem;background:var(--red);color:white;font-family:'Playfair Display',serif;font-size:1.1rem;padding:.3rem .75rem;border-radius:2px;box-shadow:0 2px 12px rgba(192,48,42,.5)}
+.card-red .card-body{padding:1rem 1.3rem}
+.card-red .card-brand{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:#f0a0a0;margin-bottom:.25rem}
+.card-red .card-title{font-family:'Playfair Display',serif;font-size:1rem;line-height:1.3;color:var(--off-white);margin-bottom:.45rem}
+.card-red .card-meta{font-size:.72rem;color:rgba(255,255,255,.4);display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.6rem}
+.card-red .card-caption{font-size:.78rem;line-height:1.6;color:rgba(240,236,230,.7);margin-bottom:.6rem}
+.card-red .card-tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.card-red .card-tag{font-family:'DM Mono',monospace;font-size:.62rem;color:#f0a0a0;background:rgba(192,48,42,.2);padding:.15rem .45rem;border-radius:2px}
+.card-red .card-footer{padding:.65rem 1.3rem;border-top:1px solid rgba(192,48,42,.25);display:flex;align-items:center;justify-content:space-between}
+.card-red .card-footer-brand{font-family:'Playfair Display',serif;font-size:.72rem;color:rgba(255,255,255,.35);letter-spacing:.08em}
+.card-red .card-footer-link{font-family:'DM Mono',monospace;font-size:.6rem;color:#f0a0a0;letter-spacing:.06em}
+
+/* Format sizes */
+.fmt-square { width:420px }
+.fmt-portrait { width:360px }
+.fmt-story { width:320px }
+.fmt-landscape { width:560px }
+
+/* no-image placeholder */
+.no-img-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;width:100%;height:100%}
+.no-img-ph .ph-icon{font-size:2.5rem;opacity:.3}
+.no-img-ph p{font-size:.75rem;opacity:.4}
+
+/* caption ai output */
+.caption-out{background:var(--black);border:1px solid var(--graphite);border-radius:4px;padding:.75rem;margin-top:.65rem;font-size:.8rem;line-height:1.65;color:var(--lt);display:none;white-space:pre-wrap;max-height:140px;overflow-y:auto}
+
+/* multi-card gallery */
+.card-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-top:1.5rem}
+.gallery-thumb{border:1.5px solid var(--graphite);border-radius:6px;overflow:hidden;cursor:pointer;transition:all .2s}
+.gallery-thumb:hover{border-color:var(--pink-deep);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.gallery-thumb img,.gallery-thumb canvas{width:100%;display:block}
+.gallery-thumb .gt-label{padding:.4rem .6rem;background:var(--charcoal);font-size:.65rem;font-family:'DM Mono',monospace;color:var(--mid);border-top:1px solid var(--graphite)}
+
+/* sdiv */
+.sdiv{font-family:'DM Mono',monospace;font-size:.6rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--pink);border-bottom:1px solid var(--graphite);padding-bottom:.35rem;margin:.6rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+.sdiv::before{content:'◆';font-size:.42rem;opacity:.7}
+
+/* upload zone */
+.img-upload{border:1px dashed var(--graphite);border-radius:6px;padding:1.2rem;text-align:center;background:var(--black);cursor:pointer;transition:all .2s;position:relative}
+.img-upload:hover{border-color:var(--pink-deep)}
+.img-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-upload p{font-size:.78rem;color:var(--mid)}
+.img-upload .iu-sub{font-size:.65rem;color:#444;margin-top:.2rem;font-family:'DM Mono',monospace}
+
+/* responsive */
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{height:auto;position:static;border-right:none;border-bottom:1px solid var(--graphite)}
+  .canvas-area{padding:1.25rem}
+}
+@media(max-width:500px){
+  .fmt-square,.fmt-portrait,.fmt-story,.fmt-landscape{width:100%!important}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="fbp_listing_wizard_v3.html">
+    <svg class="logo-icon" viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="hpA" cx="32%" cy="22%" r="72%"><stop offset="0%" stop-color="#3a0808"/><stop offset="100%" stop-color="#080000"/></radialGradient>
+        <radialGradient id="hpB" cx="68%" cy="78%" r="72%"><stop offset="0%" stop-color="#2c0606"/><stop offset="100%" stop-color="#070000"/></radialGradient>
+        <radialGradient id="hsh" cx="28%" cy="18%" r="58%"><stop offset="0%" stop-color="rgba(242,196,208,0.32)"/><stop offset="100%" stop-color="rgba(242,196,208,0)"/></radialGradient>
+        <radialGradient id="hpod" cx="38%" cy="32%" r="62%"><stop offset="0%" stop-color="#4e1855"/><stop offset="100%" stop-color="#0f0018"/></radialGradient>
+        <filter id="hfd"><feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#6b0000" flood-opacity="0.5"/></filter>
+        <filter id="hfg"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <g filter="url(#hfd)">
+        <path d="M200 205 C186 172,172 138,200 88 C228 138,214 172,200 205Z" fill="url(#hpA)"/>
+        <path d="M200 205 C186 172,172 138,200 88 C228 138,214 172,200 205Z" fill="url(#hsh)"/>
+        <path d="M200 205 C222 190,252 178,292 188 C285 225,252 218,200 205Z" fill="url(#hpB)"/>
+        <path d="M200 205 C220 220,238 248,228 288 C198 290,183 258,200 205Z" fill="url(#hpA)"/>
+        <path d="M200 205 C180 220,162 248,172 288 C202 290,217 258,200 205Z" fill="url(#hpB)"/>
+        <path d="M200 205 C178 190,148 178,108 188 C115 225,148 218,200 205Z" fill="url(#hpA)"/>
+        <path d="M200 205 C178 190,148 178,108 188 C115 225,148 218,200 205Z" fill="url(#hsh)" opacity=".5"/>
+        <path d="M200 205 C214 183,236 162,264 150 C268 180,244 198,200 205Z" fill="url(#hpA)" opacity=".9"/>
+        <path d="M200 205 C186 183,164 162,136 150 C132 180,156 198,200 205Z" fill="url(#hpB)" opacity=".9"/>
+      </g>
+      <ellipse cx="200" cy="202" rx="36" ry="32" fill="url(#hpod)" filter="url(#hfg)"/>
+      <g filter="url(#hfg)">
+        <circle cx="200" cy="186" r="5" fill="#f2c4d0" opacity=".95"/>
+        <circle cx="210" cy="192" r="4" fill="#d4788a" opacity=".85"/>
+        <circle cx="190" cy="192" r="4" fill="#d4788a" opacity=".85"/>
+      </g>
+      <path d="M200 308 Q196 335,193 368" stroke="#1a2c10" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M196 342 Q174 320,158 328 Q161 348,196 342Z" fill="#1a2c10"/>
+    </svg>
+    <div class="logo-text">Funky<span>Black</span>Poppy</div>
+  </a>
+  <div style="display:flex;gap:1.5rem;align-items:center">
+    <a class="hnav" href="fbp_listing_wizard_v3.html">← Listing Wizard</a>
+    <span class="hnav active">Style Cards</span>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <div class="sidebar">
+
+    <!-- Inventory Selector -->
+    <div class="sb-section">
+      <div class="sb-title">📦 Select from Inventory</div>
+      <div class="inv-items" id="invList">
+        <div class="no-inv">No saved inventory found.<br>Complete a listing in the Wizard first, or enter details manually below.</div>
+      </div>
+      <button style="width:100%;margin-top:.6rem;padding:.45rem;background:transparent;border:1px dashed var(--graphite);border-radius:4px;color:var(--mid);font-family:'DM Mono',monospace;font-size:.65rem;cursor:pointer;transition:all .15s" onclick="loadInventory()">↻ Refresh Inventory</button>
+    </div>
+
+    <!-- Or enter manually -->
+    <div class="sb-section">
+      <div class="sb-title">✏️ Item Details</div>
+      <div class="fg"><label>Brand</label><input type="text" id="cBrand" placeholder="e.g. Free People"></div>
+      <div class="fg"><label>Title / Item Name</label><input type="text" id="cTitle" placeholder="e.g. Vintage Lace Midi Dress"></div>
+      <div class="fg"><label>Price</label><input type="text" id="cPrice" placeholder="e.g. $48.00"></div>
+      <div class="fg"><label>Details <span style="font-weight:300;font-size:.65rem;color:var(--mid)">size · condition · material</span></label>
+        <input type="text" id="cDetails" placeholder="Size M · Excellent · 100% Silk"></div>
+      <div class="fg"><label>SKU</label><input type="text" id="cSku" placeholder="FBP-SKU-____"></div>
+    </div>
+
+    <!-- Photo upload -->
+    <div class="sb-section">
+      <div class="sb-title">📸 Photo</div>
+      <div class="img-upload">
+        <input type="file" id="cardPhoto" accept="image/*" onchange="loadPhoto(this)">
+        <p>Click to upload item photo</p>
+        <div class="iu-sub">Processed BG-removed images work best</div>
+      </div>
+    </div>
+
+    <!-- Card Style -->
+    <div class="sb-section">
+      <div class="sb-title">🎨 Card Style</div>
+      <div class="style-grid">
+        <div class="style-tile active" data-style="editorial" onclick="setStyle(this)">
+          <div class="st-prev" style="background:#0a0a0a;color:var(--pink);border:1px solid #262626">DARK</div>
+          <div class="st-name">Editorial</div>
+        </div>
+        <div class="style-tile" data-style="soft" onclick="setStyle(this)">
+          <div class="st-prev" style="background:#faeaee;color:var(--pink-deep)">SOFT</div>
+          <div class="st-name">Blush Pink</div>
+        </div>
+        <div class="style-tile" data-style="purple" onclick="setStyle(this)">
+          <div class="st-prev" style="background:linear-gradient(135deg,#120820,#1a0a2a);color:#e0cceb">LUXE</div>
+          <div class="st-name">Purple Reign</div>
+        </div>
+        <div class="style-tile" data-style="red" onclick="setStyle(this)">
+          <div class="st-prev" style="background:linear-gradient(135deg,#120202,#1a0404);color:#f0a0a0">NOIR</div>
+          <div class="st-name">Red Noir</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Format -->
+    <div class="sb-section">
+      <div class="sb-title">📐 Format</div>
+      <div class="format-pills">
+        <div class="fmt-pill active" data-fmt="square" onclick="setFmt(this)">Square 1:1</div>
+        <div class="fmt-pill" data-fmt="portrait" onclick="setFmt(this)">Portrait 4:5</div>
+        <div class="fmt-pill" data-fmt="story" onclick="setFmt(this)">Story 9:16</div>
+        <div class="fmt-pill" data-fmt="landscape" onclick="setFmt(this)">Wide 16:9</div>
+      </div>
+    </div>
+
+    <!-- AI Caption -->
+    <div class="sb-section">
+      <div class="sb-title">✨ Caption & Hashtags</div>
+      <div class="fg"><label>Platform</label>
+        <select id="capPlatform">
+          <option value="instagram">Instagram</option>
+          <option value="tiktok">TikTok</option>
+          <option value="pinterest">Pinterest</option>
+          <option value="facebook">Facebook</option>
+          <option value="depop">Depop</option>
+        </select>
+      </div>
+      <div class="fg"><label>Vibe / Style Notes</label>
+        <textarea id="capVibe" rows="2" placeholder="e.g. romantic, edgy, cozy, festival, dark academia…"></textarea>
+      </div>
+      <button class="ai-cap-btn" id="capBtn" onclick="genCaption()">
+        ✨ Generate Caption + Hashtags
+      </button>
+      <div class="caption-out" id="captionOut"></div>
+    </div>
+
+    <!-- Custom caption override -->
+    <div class="sb-section">
+      <div class="sb-title">📝 Custom Caption</div>
+      <div class="fg">
+        <textarea id="customCaption" rows="3" placeholder="Override AI caption — or leave blank to use generated…"></textarea>
+      </div>
+    </div>
+
+    <button class="gen-btn" onclick="renderCard()">🌺 Generate Style Card</button>
+
+  </div><!-- /sidebar -->
+
+  <!-- ═══ CANVAS AREA ═══ -->
+  <div class="canvas-area">
+    <div class="canvas-header">
+      <h2>Style Card Preview</h2>
+      <div class="canvas-actions">
+        <button class="act-btn" onclick="genAll4()">Generate All 4 Styles</button>
+        <button class="act-btn primary" onclick="downloadCard()">⬇ Download PNG</button>
+        <button class="act-btn" onclick="copyCaption()">📋 Copy Caption</button>
+      </div>
+    </div>
+
+    <div class="card-container" id="cardContainer">
+      <div style="text-align:center;color:var(--mid);padding:4rem 2rem">
+        <div style="font-size:3rem;margin-bottom:1rem">🌺</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--lt);margin-bottom:.5rem">Your style card will appear here</div>
+        <div style="font-size:.82rem">Fill in item details and click Generate Style Card</div>
+      </div>
+    </div>
+
+    <!-- All-4 gallery -->
+    <div id="allGallery" style="display:none">
+      <div class="sdiv" style="margin-top:2rem">All 4 Style Variations</div>
+      <div class="card-gallery" id="galleryGrid"></div>
+    </div>
+
+  </div><!-- /canvas-area -->
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let cardStyle = 'editorial';
+let cardFmt   = 'square';
+let cardPhoto = null;
+let generatedCaption = '';
+
+const FMT_SIZES = {
+  square:    { w: 420, aspect: '1/1'    },
+  portrait:  { w: 360, aspect: '4/5'   },
+  story:     { w: 320, aspect: '9/16'  },
+  landscape: { w: 560, aspect: '16/9'  },
+};
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+function init() {
+  loadInventory();
+}
+
+// ══════════════════════════════════════════════════════════
+// INVENTORY FROM LOCALSTORAGE
+// ══════════════════════════════════════════════════════════
+function loadInventory() {
+  try {
+    const all = JSON.parse(localStorage.getItem('fbp_inventory') || '[]');
+    const list = document.getElementById('invList');
+    if (!all.length) {
+      list.innerHTML = '<div class="no-inv">No saved inventory found.<br>Complete a listing in the Wizard first.</div>';
+      return;
+    }
+    list.innerHTML = all.map((item, i) => `
+      <div class="inv-row" data-idx="${i}" onclick="selectItem(${i})">
+        <div class="ir-left">
+          <span class="ir-sku">${item.sku || '—'}</span>
+          <span class="ir-name">${item.brand || ''} ${item.seoTitle || item.workTitle || item.category || 'Item'}</span>
+          <span class="ir-price">${item.condition || ''} · Size ${item.markedSize || '?'}</span>
+        </div>
+        <span class="ir-price">${item.listPrice ? '$' + parseFloat(item.listPrice).toFixed(0) : '—'}</span>
+      </div>`).join('');
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function selectItem(idx) {
+  try {
+    const all = JSON.parse(localStorage.getItem('fbp_inventory') || '[]');
+    const item = all[idx];
+    if (!item) return;
+    document.querySelectorAll('.inv-row').forEach((r, i) => r.classList.toggle('selected', i === idx));
+    document.getElementById('cBrand').value   = item.brand || '';
+    document.getElementById('cTitle').value   = item.seoTitle || item.workTitle || '';
+    document.getElementById('cPrice').value   = item.listPrice ? '$' + parseFloat(item.listPrice).toFixed(2) : '';
+    document.getElementById('cDetails').value = [item.markedSize ? 'Size ' + item.markedSize : '', item.condition, item.material].filter(Boolean).join(' · ');
+    document.getElementById('cSku').value     = item.sku || '';
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════════
+// CONTROLS
+// ══════════════════════════════════════════════════════════
+function setStyle(el) {
+  document.querySelectorAll('.style-tile').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  cardStyle = el.dataset.style;
+}
+function setFmt(el) {
+  document.querySelectorAll('.fmt-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  cardFmt = el.dataset.fmt;
+}
+function loadPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { cardPhoto = e.target.result; };
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════════════════════
+// AI CAPTION GENERATION
+// ══════════════════════════════════════════════════════════
+async function genCaption() {
+  const btn = document.getElementById('capBtn');
+  const out = document.getElementById('captionOut');
+  const brand   = document.getElementById('cBrand').value;
+  const title   = document.getElementById('cTitle').value;
+  const price   = document.getElementById('cPrice').value;
+  const details = document.getElementById('cDetails').value;
+  const plat    = document.getElementById('capPlatform').value;
+  const vibe    = document.getElementById('capVibe').value;
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="ai-spin"></div> Generating…';
+
+  const prompt = `Write a compelling social media caption for this reselling post on ${plat}. Include a call-to-action and 13 relevant hashtags at the end.
+
+Brand: ${brand}
+Item: ${title}
+Price: ${price}
+Details: ${details}
+Style/Vibe: ${vibe || 'vintage, edgy, unique'}
+Brand: FunkyBlackPoppy — an indie vintage and resell boutique. Brand colors: black, gray, pastel pink, purple, red. Aesthetic: dark editorial fashion.
+
+Write the caption naturally — 2-4 sentences max, then a blank line, then 13 hashtags including brand hashtags (#funkyblackpoppy #fbpstyle) mixed with item-specific and trending tags. Ready to paste directly.`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const d = await r.json();
+    const text = (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    generatedCaption = text.trim();
+    out.textContent = generatedCaption;
+    out.style.display = 'block';
+  } catch(e) {
+    out.textContent = '⚠️ ' + e.message;
+    out.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '✨ Generate Caption + Hashtags';
+}
+
+// ══════════════════════════════════════════════════════════
+// BUILD CARD HTML
+// ══════════════════════════════════════════════════════════
+function getCardData() {
+  const caption = document.getElementById('customCaption').value.trim() || generatedCaption;
+  const shortCap = caption.split('\n')[0] || ''; // first line for card preview
+  const tags = caption.match(/#\w+/g) || [];
+  return {
+    brand:   document.getElementById('cBrand').value || 'FBP',
+    title:   document.getElementById('cTitle').value || 'Vintage Find',
+    price:   document.getElementById('cPrice').value || '$—',
+    details: document.getElementById('cDetails').value || '',
+    sku:     document.getElementById('cSku').value || '',
+    caption: shortCap,
+    tags:    tags.slice(0, 6),
+    photo:   cardPhoto,
+  };
+}
+
+function buildCardHTML(style, fmt, data) {
+  const fmtClass = 'fmt-' + fmt;
+  const styleClass = 'card-' + style;
+  const tagsHTML = data.tags.map(t => `<span class="card-tag">${t}</span>`).join('');
+  const imgHTML = data.photo
+    ? `<img src="${data.photo}" alt="${data.title}">`
+    : `<div class="no-img-ph"><div class="ph-icon">🌺</div><p>No photo uploaded</p></div>`;
+
+  // The poppy icon inline SVG (small version)
+  const poppySVG = `<svg width="18" height="20" viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="cp${style}" cx="32%" cy="22%" r="72%"><stop offset="0%" stop-color="#3a0808"/><stop offset="100%" stop-color="#080000"/></radialGradient>
+      <radialGradient id="cs${style}" cx="28%" cy="18%" r="58%"><stop offset="0%" stop-color="rgba(242,196,208,0.35)"/><stop offset="100%" stop-color="rgba(242,196,208,0)"/></radialGradient>
+    </defs>
+    <g>
+      <path d="M200 205 C186 172,172 138,200 88 C228 138,214 172,200 205Z" fill="url(#cp${style})"/>
+      <path d="M200 205 C186 172,172 138,200 88 C228 138,214 172,200 205Z" fill="url(#cs${style})"/>
+      <path d="M200 205 C222 190,252 178,292 188 C285 225,252 218,200 205Z" fill="url(#cp${style})"/>
+      <path d="M200 205 C220 220,238 248,228 288 C198 290,183 258,200 205Z" fill="url(#cp${style})"/>
+      <path d="M200 205 C180 220,162 248,172 288 C202 290,217 258,200 205Z" fill="url(#cp${style})"/>
+      <path d="M200 205 C178 190,148 178,108 188 C115 225,148 218,200 205Z" fill="url(#cp${style})"/>
+      <ellipse cx="200" cy="200" rx="36" ry="32" fill="#2a0830"/>
+      <circle cx="200" cy="186" r="5" fill="#f2c4d0" opacity=".9"/>
+      <circle cx="210" cy="192" r="3.5" fill="#d4788a" opacity=".8"/>
+      <circle cx="190" cy="192" r="3.5" fill="#d4788a" opacity=".8"/>
+    </g>
+  </svg>`;
+
+  const brandName = `${poppySVG} Funky<span>Black</span>Poppy`;
+
+  return `
+    <div class="social-card ${styleClass} ${fmtClass}">
+      <div class="card-header">
+        <div class="card-logo">
+          <div class="card-logo-text">${brandName}</div>
+        </div>
+        ${data.sku ? `<div class="card-sku">${data.sku}</div>` : ''}
+      </div>
+      <div class="card-img-zone">
+        ${imgHTML}
+        <div class="card-price-badge">${data.price}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-brand">${data.brand}</div>
+        <div class="card-title">${data.title}</div>
+        ${data.details ? `<div class="card-meta">${data.details.split('·').map(d => `<span>${d.trim()}</span>`).join('')}</div>` : ''}
+        ${data.caption ? `<div class="card-caption">${data.caption}</div>` : ''}
+        ${tagsHTML ? `<div class="card-tags">${tagsHTML}</div>` : ''}
+      </div>
+      <div class="card-footer">
+        <div class="card-footer-brand">FunkyBlackPoppy</div>
+        <div class="card-footer-link">@funkyblackpoppy</div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════
+function renderCard() {
+  const data = getCardData();
+  const html = buildCardHTML(cardStyle, cardFmt, data);
+  const container = document.getElementById('cardContainer');
+  container.innerHTML = `<div class="card-wrap">${html}</div>`;
+  document.getElementById('allGallery').style.display = 'none';
+}
+
+function genAll4() {
+  const data = getCardData();
+  const styles = ['editorial', 'soft', 'purple', 'red'];
+  const names  = ['Editorial Dark', 'Blush Pink', 'Purple Reign', 'Red Noir'];
+
+  // Show first in main preview
+  document.getElementById('cardContainer').innerHTML =
+    `<div class="card-wrap">${buildCardHTML('editorial', cardFmt, data)}</div>`;
+
+  // Fill gallery
+  const gallery = document.getElementById('galleryGrid');
+  gallery.innerHTML = styles.map((s, i) => `
+    <div class="gallery-thumb" onclick="switchToStyle('${s}')">
+      <div style="transform:scale(0.45);transform-origin:top left;width:${100/0.45}%;height:${420*0.45}px;overflow:hidden;pointer-events:none">
+        ${buildCardHTML(s, 'square', data)}
+      </div>
+      <div class="gt-label">${names[i]}</div>
+    </div>`).join('');
+
+  document.getElementById('allGallery').style.display = 'block';
+}
+
+function switchToStyle(s) {
+  cardStyle = s;
+  document.querySelectorAll('.style-tile').forEach(t => t.classList.toggle('active', t.dataset.style === s));
+  renderCard();
+}
+
+// ══════════════════════════════════════════════════════════
+// DOWNLOAD
+// ══════════════════════════════════════════════════════════
+async function downloadCard() {
+  const card = document.querySelector('.social-card');
+  if (!card) { alert('Generate a card first!'); return; }
+
+  // Use html2canvas via CDN
+  if (typeof html2canvas === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    document.head.appendChild(script);
+    await new Promise(res => script.onload = res);
+  }
+
+  try {
+    const canvas = await html2canvas(card, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: null,
+    });
+    const a = document.createElement('a');
+    const sku = document.getElementById('cSku').value || 'card';
+    a.download = `FBP_${sku}_${cardStyle}_${new Date().toISOString().split('T')[0]}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  } catch(e) {
+    alert('Download failed: ' + e.message + '\n\nTip: Right-click the card and Save Image instead.');
+  }
+}
+
+function copyCaption() {
+  const cap = document.getElementById('customCaption').value.trim() || generatedCaption;
+  if (!cap) { alert('Generate a caption first!'); return; }
+  navigator.clipboard.writeText(cap).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy Caption', 1500);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

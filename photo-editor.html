@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=2.0">
+<title>🖤 FBP Photo Studio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f2f0eb;font-family:'Inter',system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+.editor-container{max-width:520px;width:100%;background:#fff;border-radius:32px;box-shadow:0 20px 40px rgba(0,0,0,.08);padding:20px 20px 28px;display:flex;flex-direction:column;gap:18px}
+.canvas-wrapper{background:#f5f3ef;border-radius:24px;display:flex;justify-content:center;align-items:center;padding:12px;position:relative;aspect-ratio:1/1;overflow:hidden;box-shadow:inset 0 1px 6px rgba(0,0,0,.04);transition:box-shadow .2s}
+.canvas-wrapper.bg-removal-active{box-shadow:inset 0 0 0 4px #2b241f,0 0 0 6px rgba(43,36,31,.25);cursor:crosshair}
+canvas{display:block;max-width:100%;max-height:100%;border-radius:18px;box-shadow:0 8px 18px rgba(0,0,0,.1);background:transparent}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.icon-btn{background:#f4f2ed;border:none;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#2d2a26;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.04)}
+.icon-btn:hover{background:#e8e3da;transform:scale(1.05)}
+.ratio-group{display:flex;gap:6px;background:#f4f2ed;border-radius:30px;padding:4px}
+.ratio-btn{border:none;background:transparent;padding:8px 14px;border-radius:24px;font-weight:500;font-size:14px;color:#4a4440;cursor:pointer;transition:.2s}
+.ratio-btn.active{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);color:#1a1816;font-weight:600}
+.slider-row{display:flex;align-items:center;gap:10px;width:100%}
+.slider-row label{font-size:13px;font-weight:500;color:#4b4238;width:75px}
+input[type=range]{flex:1;height:5px;-webkit-appearance:none;background:#ddd8ce;border-radius:10px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:#2b241f;border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.color-section{display:flex;align-items:center;justify-content:space-between;background:#f9f7f4;border-radius:24px;padding:10px 16px;flex-wrap:wrap;gap:8px}
+.bg-presets{display:flex;gap:8px;flex-wrap:wrap}
+.color-dot{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.color-dot.selected{border:2px solid #2b241f;transform:scale(1.08)}
+input[type=color]{width:36px;height:36px;border:none;background:transparent;cursor:pointer;border-radius:50%;padding:2px;border:1px solid #cfc8bc}
+.upload-area{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.file-label{background:#f0ede7;padding:12px 18px;border-radius:30px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;color:#332e28;transition:.2s}
+.reset-btn{background:none;border:1px solid #d9d2c5;padding:10px 20px;border-radius:30px;font-size:13px;cursor:pointer;color:#4a4238;font-weight:500;transition:.2s}
+.reset-btn:hover{background:#f5f2ed}
+hr{border:.5px solid #e4ddd2;margin:4px 0}
+.value-indicator{font-size:12px;color:#6b6258;min-width:38px;text-align:right}
+.bg-removal-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.remove-bg-btn{background:#2b241f;color:#fff;border:none;padding:10px 20px;border-radius:24px;font-weight:600;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s}
+.remove-bg-btn.active{background:#c94b2b}
+.hint-text{font-size:12px;color:#8b8176;margin-top:-8px;padding-left:6px}
+.status-message{font-size:12px;color:#c94b2b;text-align:center;margin-top:-10px;display:none}
+.download-btn{background:#2b241f;color:#fff;border:none;padding:12px 24px;border-radius:30px;font-weight:600;font-size:14px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s}
+.download-btn:hover{background:#4a3f35}
+</style>
+</head>
+<body>
+<div class="editor-container">
+    <div class="upload-area">
+        <label for="imageUpload" class="file-label"><span>📁</span> Choose product image</label>
+        <input type="file" id="imageUpload" accept="image/*" hidden>
+        <button class="reset-btn" id="resetImageBtn">↺ Reset all</button>
+    </div>
+    <div class="canvas-wrapper" id="canvasWrapper"><canvas id="imageCanvas"></canvas></div>
+    <div id="statusMessage" class="status-message">Click on the background colour in the image</div>
+    <div class="controls">
+        <button class="icon-btn" id="rotateLeftBtn">↺</button>
+        <button class="icon-btn" id="rotateRightBtn">↻</button>
+        <div class="ratio-group"><button class="ratio-btn active" data-ratio="free">Free</button><button class="ratio-btn" data-ratio="1:1">1:1</button><button class="ratio-btn" data-ratio="4:5">4:5</button><button class="ratio-btn" data-ratio="16:9">16:9</button></div>
+    </div>
+    <div class="slider-row"><label>Brightness</label><input type="range" id="brightnessSlider" min="0" max="200" value="100"><span class="value-indicator" id="brightVal">100%</span></div>
+    <div class="slider-row"><label>Contrast</label><input type="range" id="contrastSlider" min="0" max="200" value="100"><span class="value-indicator" id="contrastVal">100%</span></div>
+    <div class="slider-row"><label>Saturation</label><input type="range" id="saturationSlider" min="0" max="200" value="100"><span class="value-indicator" id="satVal">100%</span></div>
+    <div class="bg-removal-row">
+        <button class="remove-bg-btn" id="removeBgBtn"><span>🔍</span> Remove background</button>
+        <div style="display:flex;gap:6px;align-items:center"><span style="font-size:13px;font-weight:500;color:#4b4238">Tolerance</span><input type="range" id="toleranceSlider" min="5" max="100" value="30"><span id="toleranceValue" style="font-size:12px;color:#6b6258">30</span></div>
+        <div style="display:flex;gap:6px;align-items:center"><span style="font-size:13px;font-weight:500;color:#4b4238">Feather</span><input type="range" id="featherSlider" min="0" max="15" value="2" step="0.5"><span id="featherValue" style="font-size:12px;color:#6b6258">2</span></div>
+        <button class="reset-btn" id="resetBgBtn">Reset cutout</button>
+    </div>
+    <div class="hint-text">Tap "Remove background" → then tap the background colour on the photo.</div>
+    <hr>
+    <div class="color-section">
+        <span style="font-weight:500;font-size:14px">New background</span>
+        <div class="bg-presets" id="bgPresets">
+            <span class="color-dot selected" data-color="#ffffff" style="background:#fff"></span>
+            <span class="color-dot" data-color="#f2e9de" style="background:#f2e9de"></span>
+            <span class="color-dot" data-color="#d9cdb3" style="background:#d9cdb3"></span>
+            <span class="color-dot" data-color="#b6a48b" style="background:#b6a48b"></span>
+            <span class="color-dot" data-color="#5e503a" style="background:#5e503a"></span>
+            <span class="color-dot" data-color="#2e2b26" style="background:#2e2b26"></span>
+        </div>
+        <div class="custom-color-wrap"><input type="color" id="customBgColorPicker" value="#ffffff"></div>
+    </div>
+    <button class="download-btn" id="downloadBtn">⬇️ Download Clean PNG</button>
+</div>
+<script>
+(function(){
+const canvas=document.getElementById('imageCanvas'),ctx=canvas.getContext('2d',{willReadFrequently:true}),wrapper=document.getElementById('canvasWrapper'),statusMsg=document.getElementById('statusMessage'),fileInput=document.getElementById('imageUpload'),resetBtn=document.getElementById('resetImageBtn'),rotateLeftBtn=document.getElementById('rotateLeftBtn'),rotateRightBtn=document.getElementById('rotateRightBtn'),ratioBtns=document.querySelectorAll('.ratio-btn'),brightSlider=document.getElementById('brightnessSlider'),contrastSlider=document.getElementById('contrastSlider'),satSlider=document.getElementById('saturationSlider'),brightVal=document.getElementById('brightVal'),contrastVal=document.getElementById('contrastVal'),satVal=document.getElementById('satVal'),bgPresets=document.getElementById('bgPresets'),customBg=document.getElementById('customBgColorPicker'),removeBgBtn=document.getElementById('removeBgBtn'),resetBgBtn=document.getElementById('resetBgBtn'),toleranceSlider=document.getElementById('toleranceSlider'),toleranceVal=document.getElementById('toleranceValue'),featherSlider=document.getElementById('featherSlider'),featherVal=document.getElementById('featherValue'),downloadBtn=document.getElementById('downloadBtn');
+let image=null,rotation=0,ratio='free',brightness=100,contrast=100,saturation=100,bgColor='#ffffff',bgRemoved=false,maskData=null,removalMode=false,tolerance=30,feather=2;
+const dpr=window.devicePixelRatio||1;
+function loadImage(file){if(!file)return;const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>{image=img;rotation=0;brightness=contrast=saturation=100;brightSlider.value=contrastSlider.value=satSlider.value=100;brightVal.textContent=contrastVal.textContent=satVal.textContent='100%';resetCutout();draw()};img.src=e.target.result};reader.readAsDataURL(file)}
+function resetAll(){if(!image)return;rotation=0;brightness=contrast=saturation=100;brightSlider.value=contrastSlider.value=satSlider.value=100;brightVal.textContent=contrastVal.textContent=satVal.textContent='100%';resetCutout();draw()}
+function resetCutout(){bgRemoved=false;maskData=null;exitRM();draw()}
+function enterRM(){if(!image){alert('Upload an image first');return}removalMode=true;removeBgBtn.classList.add('active');wrapper.classList.add('bg-removal-active');statusMsg.style.display='block'}
+function exitRM(){removalMode=false;removeBgBtn.classList.remove('active');wrapper.classList.remove('bg-removal-active');statusMsg.style.display='none'}
+function rotateImg(deg){if(!image)return;rotation=(rotation+deg)%360;if(rotation<0)rotation+=360;draw()}
+function getLS(){const rect=wrapper.getBoundingClientRect();let max=Math.min(rect.width,rect.height)-24;if(max<150)max=280;if(!image)return{w:max,h:max};const iw=image.width,ih=image.height,vert=rotation%180!==0,ew=vert?ih:iw,eh=vert?iw:ih;if(ratio==='free'){const r=ew/eh;return r>=1?{w:max,h:max/r}:{w:max*r,h:max}}const[wr,hr]=ratio.split(':').map(Number),rv=wr/hr;return rv>=1?{w:max,h:max/rv}:{w:max*rv,h:max}}
+function draw(){const{w,h}=getLS(),pw=Math.round(w*dpr),ph=Math.round(h*dpr);canvas.width=pw;canvas.height=ph;canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.clearRect(0,0,pw,ph);ctx.fillStyle=bgColor;ctx.fillRect(0,0,pw,ph);if(!image){ctx.fillStyle='#b7a99a';ctx.font=`${14*dpr}px Inter`;ctx.textAlign='center';ctx.fillText('upload image',pw/2,ph/2);return}ctx.save();ctx.scale(dpr,dpr);ctx.translate(w/2,h/2);ctx.rotate(rotation*Math.PI/180);const iw=image.width,ih=image.height,vert=rotation%180!==0,ew=vert?ih:iw,eh=vert?iw:ih,scale=Math.min(w/ew,h/eh),dw=iw*scale,dh=ih*scale;ctx.filter=`brightness(${brightness/100}) contrast(${contrast/100}) saturate(${saturation/100})`;if(bgRemoved&&maskData){const temp=document.createElement('canvas');temp.width=iw;temp.height=ih;temp.getContext('2d').putImageData(maskData,0,0);ctx.drawImage(temp,-dw/2,-dh/2,dw,dh)}else ctx.drawImage(image,-dw/2,-dh/2,dw,dh);ctx.filter='none';ctx.restore()}
+function handleClick(e){if(!removalMode||!image)return;const rect=canvas.getBoundingClientRect(),{w,h}=getLS(),lx=(e.clientX-rect.left)*(w/rect.width),ly=(e.clientY-rect.top)*(h/rect.height),rad=rotation*Math.PI/180,iw=image.width,ih=image.height,vert=rotation%180!==0,ew=vert?ih:iw,eh=vert?iw:ih,scale=Math.min(w/ew,h/eh),dx=lx-w/2,dy=ly-h/2,ux=dx*Math.cos(-rad)-dy*Math.sin(-rad),uy=dx*Math.sin(-rad)+dy*Math.cos(-rad),px=Math.max(0,Math.min(iw-1,Math.round(ux/scale+iw/2))),py=Math.max(0,Math.min(ih-1,Math.round(uy/scale+ih/2)));const off=document.createElement('canvas');off.width=iw;off.height=ih;const oc=off.getContext('2d');oc.drawImage(image,0,0);const[tr,tg,tb]=oc.getImageData(px,py,1,1).data,id=oc.getImageData(0,0,iw,ih),d=id.data,md=(tolerance/100)*255,ts=md*md;for(let i=0;i<d.length;i+=4){const dr=d[i]-tr,dg=d[i+1]-tg,db=d[i+2]-tb;d[i+3]=(dr*dr+dg*dg+db*db)<=ts?0:255}if(feather>.5){const a=new Uint8Array(d.length/4);for(let i=0;i<a.length;i++)a[i]=d[i*4+3];const bl=new Uint8Array(a.length),rf=Math.round(feather);for(let y=0;y<ih;y++)for(let x=0;x<iw;x++){let s=0,c=0;for(let k=-rf;k<=rf;k++){const nx=x+k;if(nx>=0&&nx<iw){s+=a[y*iw+nx];c++}}bl[y*iw+x]=s/c}for(let y=0;y<ih;y++)for(let x=0;x<iw;x++){let s=0,c=0;for(let k=-rf;k<=rf;k++){const ny=y+k;if(ny>=0&&ny<ih){s+=bl[ny*iw+x];c++}}d[(y*iw+x)*4+3]=s/c}}maskData=new ImageData(d,iw,ih);bgRemoved=true;exitRM();draw()}
+function setBg(hex){bgColor=hex;customBg.value=hex;document.querySelectorAll('.color-dot').forEach(d=>d.classList.toggle('selected',d.dataset.color===hex));draw()}
+function setR(r){ratio=r;ratioBtns.forEach(b=>b.classList.toggle('active',b.dataset.ratio===r));draw()}
+function dl(){if(!image)return;const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='fbp-product-photo.png';a.click()}
+fileInput.addEventListener('change',e=>{if(e.target.files[0])loadImage(e.target.files[0]);fileInput.value=''});
+resetBtn.addEventListener('click',resetAll);rotateLeftBtn.addEventListener('click',()=>rotateImg(-90));rotateRightBtn.addEventListener('click',()=>rotateImg(90));
+ratioBtns.forEach(b=>b.addEventListener('click',()=>setR(b.dataset.ratio)));
+brightSlider.addEventListener('input',e=>{brightness=+e.target.value;brightVal.textContent=brightness+'%';draw()});
+contrastSlider.addEventListener('input',e=>{contrast=+e.target.value;contrastVal.textContent=contrast+'%';draw()});
+satSlider.addEventListener('input',e=>{saturation=+e.target.value;satVal.textContent=saturation+'%';draw()});
+bgPresets.addEventListener('click',e=>{const dot=e.target.closest('.color-dot');if(dot)setBg(dot.dataset.color)});
+customBg.addEventListener('input',e=>setBg(e.target.value));
+removeBgBtn.addEventListener('click',()=>{if(removalMode)exitRM();else enterRM()});
+resetBgBtn.addEventListener('click',resetCutout);
+toleranceSlider.addEventListener('input',e=>{tolerance=+e.target.value;toleranceVal.textContent=tolerance});
+featherSlider.addEventListener('input',e=>{feather=+e.target.value;featherVal.textContent=feather});
+canvas.addEventListener('click',handleClick);downloadBtn.addEventListener('click',dl);
+window.addEventListener('resize',draw);setBg('#ffffff');toleranceVal.textContent=tolerance;featherVal.textContent=feather;
+})();
+</script>
+</body>
+</html>

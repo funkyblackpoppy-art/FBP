@@ -347,23 +347,11 @@ footer .memorial{color:var(--mid);font-style:italic}
 <!-- ═══ PHOTO STUDIO (link) ═══ -->
 <div class="panel" id="p-photo">
   <div class="sh">Photo Studio — BG Removal & Editing</div>
-  <div class="card" style="text-align:center;padding:2.5rem">
-    <div style="font-size:2.5rem;margin-bottom:1rem">📷</div>
-    <div style="font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:.7rem">Your Photo Editor</div>
-    <div style="font-size:.85rem;color:var(--lt);margin-bottom:1.5rem;line-height:1.6">
-      Background removal · Brightness/Contrast/Saturation · Rotate<br>
-      · Aspect ratios (Free/1:1/4:5/16:9) · FBP brand color backgrounds<br>
-      · Custom color wheel · Tolerance & feather controls · Download PNG
-    </div>
-    <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap">
-      <button class="btn btn-pink" style="padding:.75rem 2rem;font-size:.9rem" onclick="document.getElementById('embedPhoto').style.display='block';this.style.display='none'">
-        Open Photo Editor Here ↓
-      </button>
-    </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <div style="font-size:.75rem;color:var(--lt)">Upload → Remove BG → Adjust → Choose new background → Download PNG</div>
+    <a href="photo-editor.html" target="_blank" class="btn btn-ghost" style="text-decoration:none">Open in New Tab ↗</a>
   </div>
-  <div id="embedPhoto" style="display:none;margin-top:1rem">
-    <iframe id="photoFrame" style="width:100%;height:700px;border:1px solid var(--graphite);border-radius:8px;background:#f2f0eb"></iframe>
-  </div>
+  <iframe src="photo-editor.html" style="width:100%;height:700px;border:1px solid var(--graphite);border-radius:8px;background:#f2f0eb"></iframe>
 </div>
 
 <!-- ═══ TODAY'S QUEUE ═══ -->
